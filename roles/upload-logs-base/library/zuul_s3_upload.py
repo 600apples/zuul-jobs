@@ -83,6 +83,17 @@ class Uploader():
 
 
         print("=============================")
+        with open("/srv/static/logs/data.txt", "a") as f:
+            f.write("self.url: " + self.url + "\n")
+            f.write("bucket: " + bucket + "\n")
+            f.write("public: " + str(public) + "\n")
+            f.write("endpoint: " + str(endpoint) + "\n")
+            f.write("aws_access_key: " + str(aws_access_key) + "\n")
+            f.write("aws_secret_key: " + str(aws_secret_key) + "\n")
+            f.write("endpoint: " + self.endpoint + "\n")
+            f.write("enviroment: " + str(os.environ) + "\n")
+
+
         print("self.url: ", self.url)
         print("bucket: ", bucket)
         print("public: ", public)
