@@ -81,6 +81,17 @@ class Uploader():
             self.url = os.path.join(return_endpoint,
                                     self.prefix)
 
+
+        print("=============================")
+        print("self.url: ", self.url)
+        print("bucket: ", bucket)
+        print("public: ", public)
+        print("endpoint: ", endpoint)
+        print(aws_access_key)
+        print(aws_secret_key)
+        print("endpoint: ", self.endpoint)
+        print("enviroment: ", os.environ)
+
         self.s3 = boto3.resource('s3',
                                  endpoint_url=self.endpoint,
                                  aws_access_key_id=aws_access_key,
