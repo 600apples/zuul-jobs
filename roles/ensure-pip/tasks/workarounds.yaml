@@ -1,0 +1,45 @@
+#
+# This file contains workaround tasks for specific issues
+#
+
+# Somehow on SuSE 15 the dependencies are such that python2-pip can be
+# installed, but setuptools is not.  This breaks Ansible's pip: which
+# does a direct import of pkg_resources and thus has a hard-dependency
+# on setuptools.  This doesn't appear to happen for python3.  Thus we
+# ensure this is installed, even if we skipped install phase because
+# pip looked like it was installed already.
+- name: Ensure setuptools
+  package:
+    name: python-setuptools
+  become: yes
+  when:
+    - ansible_python.version.major == 2
+    - ansible_os_family == 'Suse'
+    - ansible_distribution_major_version == '15'
+
+# Part of this role is exporting a working virtualenv_command for you
+# -- on Debuntu, the presence of venv (i.e. "python3 -m venv --help"
+# works) doesn't actually mean venv works.  When "python3 -m venv foo"
+# is run, venv construction will fail because the "ensurepip" module
+# is not present.
+#
+# It's quite possible we have pip and so have skipped installing from
+# packages, where we would have brought this in.  To avoid requiring
+# sudo, which is the whole point of probing for pip and skipping
+# install if we have it, we probe for "ensurepip" here and only
+# install the package if required.
+- name: Check for ensurepip module
+  command: python3 -m ensurepip --help
+  failed_when: false
+  register: _ensurepip_module
+  when:
+    - ansible_os_family == 'Debian'
+
+- name: Ensure python3-venv
+  package:
+    name:
+      - python3-venv
+  become: yes
+  when:
+    - ansible_os_family == 'Debian'
+    - _ensurepip_module.rc != 0

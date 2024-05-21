@@ -1,0 +1,23 @@
+- hosts: all
+
+  tasks:
+    - name: Abort when test_command variable is undefined
+      fail:
+        msg: mandatory test_command variable is undefined
+      when: test_command is undefined
+
+    - name: Convert test_command to list
+      set_fact:
+        test_commands: ['{{ test_command }}']
+      when: test_command | type_debug != 'list'
+
+    - name: Use test_command list
+      set_fact:
+        test_commands: '{{ test_command }}'
+      when: test_command | type_debug == 'list'
+
+    - name: Run test_command
+      command: '{{ item }}'
+      args:
+        chdir: '{{ zuul_work_dir | default(zuul.project.src_dir) }}'
+      with_items: '{{ test_commands }}'

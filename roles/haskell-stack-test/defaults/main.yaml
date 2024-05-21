@@ -1,0 +1,7 @@
+haskell_stack_target: ""
+lts_version: ""
+zuul_work_dir: "{{ zuul.project.src_dir }}"
+
+_stack_resolver_args: "{% if lts_version %}--resolver {{ lts_version }}{% endif %}"
+_stack_build_args: "{{ _stack_resolver_args }} --test --no-run-tests {{ haskell_stack_target }}"
+_stack_test_args: "{{ _stack_resolver_args }} {{ haskell_stack_target }}"

@@ -1,0 +1,19 @@
+- job:
+    name: zuul-jobs-test-dhall-diff
+    description: Test the dhall-diff job and roles
+    parent: dhall-diff
+    files:
+      - playbooks/dhall/.*
+      - roles/ensure-dhall/.*
+      - roles/render-diff/.*
+    pre-run: test-playbooks/dhall/setup-project.yaml
+    run: test-playbooks/dhall/test-dhall-diff.yaml
+
+- project:
+    check:
+      jobs: &id001
+        - zuul-jobs-test-dhall-diff
+    gate:
+      jobs: *id001
+    periodic-weekly:
+      jobs: *id001

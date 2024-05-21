@@ -1,0 +1,59 @@
+- hosts: all
+  name: Post testing
+  tasks:
+    - name: Run functionality tests
+      block:
+        # The default account is known to take a while to appear; see
+        #  https://github.com/kubernetes/kubernetes/issues/66689
+        - name: Ensure default account created
+          command: kubectl -n default get serviceaccount default -o name
+          retries: 5
+          delay: 5
+          register: result
+          until: result.rc == 0
+
+        - name: Create a test pod definition
+          copy:
+            dest: test-pod.yaml
+            content: |
+              apiVersion: v1
+              kind: Pod
+              metadata:
+                name: test
+              spec:
+                restartPolicy: Never
+                containers:
+                  - name: test
+                    image: k8s.gcr.io/pause:3.1
+
+        - name: Start pod
+          command: kubectl apply -f test-pod.yaml
+
+        - name: Wait a bit
+          pause:
+            seconds: 30
+
+        - name: Describe pod
+          shell: sleep 5; kubectl describe pods test
+
+        - name: Ensure pod is running
+          shell: sleep 5; kubectl get pods
+          register: _get_pods_output
+          until: "'Running' in _get_pods_output.stdout"
+          retries: 3
+          delay: 10
+
+      always:
+        - name: Collect container logs
+          import_role:
+            name: collect-container-logs
+
+        - name: Collect kubernetes logs
+          import_role:
+            name: collect-kubernetes-logs
+
+        - name: Get minikube logs
+          become: true
+          shell: "/tmp/minikube logs > {{ ansible_user_dir }}/zuul-output/logs/minikube.txt || true"
+          environment:
+            MINIKUBE_HOME: "{{ ansible_user_dir }}"

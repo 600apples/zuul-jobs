@@ -1,0 +1,183 @@
+- job:
+    name: zuul-jobs-test-build-python-release-jobs
+    description: Test the build-python-release-jobs role
+    files:
+      - roles/build-python-release/.*
+      - setup.cfg
+      - setup.py
+    vars:
+      role_name: build-python-release
+      release_python: python3
+    pre-run: playbooks/python/pre.yaml
+    run: test-playbooks/simple-role-test.yaml
+    tags: all-platforms
+
+- job:
+    name: zuul-jobs-test-build-python-release-jobs-centos-8-stream
+    description: Test the build-python-release-jobs role on centos-8-stream
+    parent: zuul-jobs-test-build-python-release-jobs
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: centos-8-stream
+          label: centos-8-stream
+
+- job:
+    name: zuul-jobs-test-build-python-release-jobs-centos-9-stream
+    description: Test the build-python-release-jobs role on centos-9-stream
+    parent: zuul-jobs-test-build-python-release-jobs
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: centos-9-stream
+          label: centos-9-stream
+
+- job:
+    name: zuul-jobs-test-build-python-release-jobs-debian-bookworm
+    description: Test the build-python-release-jobs role on debian-bookworm
+    parent: zuul-jobs-test-build-python-release-jobs
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: debian-bookworm
+          label: debian-bookworm
+
+- job:
+    name: zuul-jobs-test-build-python-release-jobs-debian-bullseye
+    description: Test the build-python-release-jobs role on debian-bullseye
+    parent: zuul-jobs-test-build-python-release-jobs
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: debian-bullseye
+          label: debian-bullseye
+
+- job:
+    name: zuul-jobs-test-build-python-release-jobs-ubuntu-bionic
+    description: Test the build-python-release-jobs role on ubuntu-bionic
+    parent: zuul-jobs-test-build-python-release-jobs
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: ubuntu-bionic
+          label: ubuntu-bionic
+
+- job:
+    name: zuul-jobs-test-build-python-release-jobs-ubuntu-focal
+    description: Test the build-python-release-jobs role on ubuntu-focal
+    parent: zuul-jobs-test-build-python-release-jobs
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: ubuntu-focal
+          label: ubuntu-focal
+
+- job:
+    name: zuul-jobs-test-build-python-release-jobs-ubuntu-jammy
+    description: Test the build-python-release-jobs role on ubuntu-jammy
+    parent: zuul-jobs-test-build-python-release-jobs
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: ubuntu-jammy
+          label: ubuntu-jammy
+
+- job:
+    name: zuul-jobs-test-ensure-python-pyenv
+    description: Test the ensure-python role with pyenv
+    files:
+      - roles/ensure-python/.*
+    run: test-playbooks/ensure-python-pyenv.yaml
+    tags: all-platforms
+
+- job:
+    name: zuul-jobs-test-ensure-python-pyenv-centos-8-stream
+    description: Test the ensure-python role with pyenv on centos-8-stream
+    parent: zuul-jobs-test-ensure-python-pyenv
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: centos-8-stream
+          label: centos-8-stream
+
+- job:
+    name: zuul-jobs-test-ensure-python-pyenv-centos-9-stream
+    description: Test the ensure-python role with pyenv on centos-9-stream
+    parent: zuul-jobs-test-ensure-python-pyenv
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: centos-9-stream
+          label: centos-9-stream
+
+- job:
+    name: zuul-jobs-test-ensure-python-pyenv-debian-bookworm
+    description: Test the ensure-python role with pyenv on debian-bookworm
+    parent: zuul-jobs-test-ensure-python-pyenv
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: debian-bookworm
+          label: debian-bookworm
+
+- job:
+    name: zuul-jobs-test-ensure-python-pyenv-debian-bullseye
+    description: Test the ensure-python role with pyenv on debian-bullseye
+    parent: zuul-jobs-test-ensure-python-pyenv
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: debian-bullseye
+          label: debian-bullseye
+
+- job:
+    name: zuul-jobs-test-ensure-python-pyenv-ubuntu-bionic
+    description: Test the ensure-python role with pyenv on ubuntu-bionic
+    parent: zuul-jobs-test-ensure-python-pyenv
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: ubuntu-bionic
+          label: ubuntu-bionic
+
+- job:
+    name: zuul-jobs-test-ensure-python-pyenv-ubuntu-focal
+    description: Test the ensure-python role with pyenv on ubuntu-focal
+    parent: zuul-jobs-test-ensure-python-pyenv
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: ubuntu-focal
+          label: ubuntu-focal
+
+- job:
+    name: zuul-jobs-test-ensure-python-pyenv-ubuntu-jammy
+    description: Test the ensure-python role with pyenv on ubuntu-jammy
+    parent: zuul-jobs-test-ensure-python-pyenv
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: ubuntu-jammy
+          label: ubuntu-jammy
+
+- project:
+    check:
+      jobs: &id001
+        - zuul-jobs-test-build-python-release-jobs-centos-8-stream
+        - zuul-jobs-test-build-python-release-jobs-centos-9-stream
+        - zuul-jobs-test-build-python-release-jobs-debian-bookworm
+        - zuul-jobs-test-build-python-release-jobs-debian-bullseye
+        - zuul-jobs-test-build-python-release-jobs-ubuntu-bionic
+        - zuul-jobs-test-build-python-release-jobs-ubuntu-focal
+        - zuul-jobs-test-build-python-release-jobs-ubuntu-jammy
+        - zuul-jobs-test-ensure-python-pyenv-centos-8-stream
+        - zuul-jobs-test-ensure-python-pyenv-centos-9-stream
+        - zuul-jobs-test-ensure-python-pyenv-debian-bookworm
+        - zuul-jobs-test-ensure-python-pyenv-debian-bullseye
+        - zuul-jobs-test-ensure-python-pyenv-ubuntu-bionic
+        - zuul-jobs-test-ensure-python-pyenv-ubuntu-focal
+        - zuul-jobs-test-ensure-python-pyenv-ubuntu-jammy
+    gate:
+      jobs: *id001
+    periodic-weekly:
+      jobs: *id001

@@ -1,0 +1,6 @@
+- hosts: all
+  tasks:
+    - name: Setup files
+      command: cabal init --non-interactive
+      args:
+        chdir: "{{ zuul.project.src_dir }}"

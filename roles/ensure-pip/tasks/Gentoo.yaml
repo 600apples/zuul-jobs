@@ -1,0 +1,15 @@
+- name: Install Python 3 pip
+  package:
+    name:
+      - dev-python/pip
+      - dev-python/wheel
+  become: yes
+
+- name: Install Python 2 pip
+  package:
+    name:
+      - dev-python/pip
+      - dev-python/wheel
+  become: yes
+  when:
+    - ensure_pip_from_packages_with_python2

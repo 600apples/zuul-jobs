@@ -1,0 +1,9 @@
+- hosts: all
+  roles:
+    - role: ensure-helm
+  tasks:
+    - name: Create helm chart
+      shell: |
+        helm create test-chart
+      args:
+        chdir: "{{ zuul.project.src_dir }}"

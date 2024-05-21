@@ -1,0 +1,14 @@
+- name: Run cabal install {{ _cabal_install_args }}
+  command: "cabal install {{ _cabal_install_args }}"
+  args:
+    chdir: "{{ zuul_work_dir }}"
+
+- name: Run cabal build {{ _cabal_build_args }}
+  command: "cabal build {{ _cabal_build_args }}"
+  args:
+    chdir: "{{ zuul_work_dir }}"
+
+- name: Run cabal test {{ _cabal_test_args }}
+  command: "cabal test {{ _cabal_test_args }}"
+  args:
+    chdir: "{{ zuul_work_dir }}"

@@ -1,0 +1,121 @@
+# {{ ansible_managed }}
+[baseos]
+name=CentOS Stream $releasever - BaseOS
+{% if configure_mirrors_components_9_stream['baseos'] %}
+baseurl={{ package_mirror }}/$stream/BaseOS/$basearch/os/
+{% else %}
+metalink=https://mirrors.centos.org/metalink?repo=centos-baseos-$stream&arch=$basearch&protocol=https,http
+{% endif %}
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+gpgcheck=1
+repo_gpgcheck=0
+metadata_expire=6h
+countme=1
+enabled=1
+
+[baseos-debug]
+name=CentOS Stream $releasever - BaseOS - Debug
+{% if configure_mirrors_components_9_stream['baseos-debug'] %}
+baseurl={{ package_mirror }}/$stream/BaseOS/$basearch/debug/
+{% else %}
+metalink=https://mirrors.centos.org/metalink?repo=centos-baseos-debug-$stream&arch=$basearch&protocol=https,http
+{% endif %}
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+gpgcheck=1
+repo_gpgcheck=0
+metadata_expire=6h
+enabled=0
+
+[baseos-source]
+name=CentOS Stream $releasever - BaseOS - Source
+{% if configure_mirrors_components_9_stream['baseos-source'] %}
+baseurl={{ package_mirror }}/$stream/BaseOS/$basearch/source/
+{% else %}
+metalink=https://mirrors.centos.org/metalink?repo=centos-baseos-source-$stream&arch=source&protocol=https,http
+{% endif %}
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+gpgcheck=1
+repo_gpgcheck=0
+metadata_expire=6h
+enabled=0
+
+[appstream]
+name=CentOS Stream $releasever - AppStream
+{% if configure_mirrors_components_9_stream['appstream'] %}
+baseurl={{ package_mirror }}/$stream/AppStream/$basearch/os/
+{% else %}
+metalink=https://mirrors.centos.org/metalink?repo=centos-appstream-$stream&arch=$basearch&protocol=https,http
+{% endif %}
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+gpgcheck=1
+repo_gpgcheck=0
+metadata_expire=6h
+countme=1
+enabled=1
+
+[appstream-debug]
+name=CentOS Stream $releasever - AppStream - Debug
+{% if configure_mirrors_components_9_stream['appstream-debug'] %}
+baseurl={{ package_mirror }}/$stream/AppStream/$basearch/debug/
+{% else %}
+metalink=https://mirrors.centos.org/metalink?repo=centos-appstream-debug-$stream&arch=$basearch&protocol=https,http
+{% endif %}
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+gpgcheck=1
+repo_gpgcheck=0
+metadata_expire=6h
+enabled=0
+
+[appstream-source]
+name=CentOS Stream $releasever - AppStream - Source
+{% if configure_mirrors_components_9_stream['appstream-source'] %}
+baseurl={{ package_mirror }}/$stream/AppStream/$basearch/source/
+{% else %}
+metalink=https://mirrors.centos.org/metalink?repo=centos-appstream-source-$stream&arch=source&protocol=https,http
+{% endif %}
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+gpgcheck=1
+repo_gpgcheck=0
+metadata_expire=6h
+enabled=0
+
+[crb]
+name=CentOS Stream $releasever - CRB
+{% if configure_mirrors_components_9_stream['crb'] %}
+baseurl={{ package_mirror }}/$stream/CRB/$basearch/os/
+{% else %}
+metalink=https://mirrors.centos.org/metalink?repo=centos-crb-$stream&arch=$basearch&protocol=https,http
+{% endif %}
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+gpgcheck=1
+repo_gpgcheck=0
+metadata_expire=6h
+countme=1
+enabled=1
+
+[crb-debug]
+name=CentOS Stream $releasever - CRB - Debug
+{% if configure_mirrors_components_9_stream['crb-debug'] %}
+baseurl={{ package_mirror }}/$stream/CRB/$basearch/debug/
+{% else %}
+metalink=https://mirrors.centos.org/metalink?repo=centos-crb-debug-$stream&arch=$basearch&protocol=https,http
+{% endif %}
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+gpgcheck=1
+repo_gpgcheck=0
+metadata_expire=6h
+enabled=0
+
+[crb-source]
+name=CentOS Stream $releasever - CRB - Source
+{% if configure_mirrors_components_9_stream['crb-source'] %}
+baseurl={{ package_mirror }}/$stream/CRB/$basearch/source/
+{% else %}
+metalink=https://mirrors.centos.org/metalink?repo=centos-crb-source-$stream&arch=source&protocol=https,http
+{% endif %}
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+gpgcheck=1
+repo_gpgcheck=0
+metadata_expire=6h
+enabled=0
+

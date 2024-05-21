@@ -1,0 +1,68 @@
+- name: Include ensure-pip
+  include_role:
+    name: ensure-pip
+
+- name: Create temp directory
+  tempfile:
+    state: directory
+    suffix: venv-test
+  register: _tmp_venv
+
+- name: Sanity check provided virtualenv command installs
+  pip:
+    name: tox
+    virtualenv_command: '{{ ensure_pip_virtualenv_command }}'
+    virtualenv: '{{ _tmp_venv.path }}'
+
+- name: Sanity check installed command runs without error
+  command: '{{ _tmp_venv.path }}/bin/tox --version'
+
+- name: Remove tmpdir
+  file:
+    path: '{{ _tmp_venv.path }}'
+    state: absent
+
+- name: Sanity check pip wheel generation
+  shell: |
+    cd {{ ansible_user_dir }}/src/opendev.org/zuul/zuul-jobs/tools/dummy-package
+    # This should run anywhere without too much logic ...
+    run_pip=$(command -v pip3 || command -v pip2 || command -v pip)
+    # Preinstall pbr to work around very old distutils lacking SNI support
+    $run_pip install pbr
+    $run_pip wheel --no-deps .
+    ls dummy_package*.whl || exit 1
+
+- name: Test virtualenv
+  # NOTE(ianw) 2022-02-03 : not supported on 9-stream, see inline comments
+  # NOTE(frickler) 2022-03-01 : pin pluggy so as to work on Debian Buster
+  when: not (ansible_facts['distribution'] == 'CentOS' and  ansible_facts['distribution_major_version']|int >= 9)
+  block:
+    # ensure-virtualenv
+    - name: Include ensure-virtualenv
+      include_role:
+        name: ensure-virtualenv
+
+    - name: Sanity check virtualenv command works
+      shell: |
+        tmp_venv=$(mktemp -d -t venv-XXXXXXXXXX)
+        trap "rm -rf $tmp_venv" EXIT
+        virtualenv $tmp_venv
+        $tmp_venv/bin/pip install tox "pluggy<1"
+      failed_when: false
+      register: _virtualenv_sanity
+
+    - name: Assert sanity check
+      fail:
+        msg: 'The virtualenv command does not appear to work!'
+      when:
+        - _virtualenv_sanity.rc != 0
+
+# NOTE(ianw) : this does not play nicely with pip-and-virtualenv which
+# has already installed from source.  We might be able to test this
+# once it's gone...
+
+# - hosts: all
+#   roles:
+#     - role: ensure-pip
+#       vars:
+#         ensure_pip_from_upstream: True

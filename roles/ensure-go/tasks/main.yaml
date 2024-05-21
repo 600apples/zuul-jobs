@@ -1,0 +1,14 @@
+- name: Check installed go version
+  command: go version
+  register: go_installed_version
+  environment:
+    PATH: "{{ ansible_env.PATH }}:{{ go_install_dir }}/go/bin"
+  failed_when: false
+
+- name: Skip if correct version of go is installed
+  include_tasks: install-go.yaml
+  when:
+    - go_installed_version.rc != 0 or
+      go_version != (go_installed_version.stdout|regex_replace(go_version_pattern, '\\g<version>')) or
+      go_os != (go_installed_version.stdout|regex_replace(go_version_pattern, '\\g<os>')) or
+      go_arch != (go_installed_version.stdout|regex_replace(go_version_pattern, '\\g<arch>'))

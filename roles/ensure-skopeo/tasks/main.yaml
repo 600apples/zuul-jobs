@@ -1,0 +1,10 @@
+- name: Find distribution installation
+  include_tasks: "{{ zj_distro_os }}"
+  with_first_found:
+    - "{{ ansible_distribution }}-{{ ansible_distribution_version }}.yaml"
+    - "{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yaml"
+    - "{{ ansible_distribution }}.yaml"
+    - "{{ ansible_os_family }}.yaml"
+    - "default.yaml"
+  loop_control:
+    loop_var: zj_distro_os

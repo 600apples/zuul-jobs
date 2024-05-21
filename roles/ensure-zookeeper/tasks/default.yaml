@@ -1,0 +1,5 @@
+- name: Warn about unsupported distribution
+  debug:
+    msg: >
+      WARNING: Installation of Java on {{ ansible_distribution }} is not
+      supported by this role yet.

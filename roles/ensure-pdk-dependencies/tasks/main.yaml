@@ -1,0 +1,19 @@
+- name: Install ruby dependencies on Red Hat/SUSE based distribution
+  package:
+    name:
+      - ruby-devel
+      - gcc-c++
+      - make
+    state: present
+  become: yes
+  when: ansible_os_family == "RedHat" or ansible_os_family == "Suse"
+
+- name: Install ruby dependencies on Debian based distribution
+  package:
+    name:
+      - ruby-dev
+      - g++
+      - make
+    state: present
+  become: yes
+  when: ansible_os_family == "Debian"

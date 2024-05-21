@@ -1,0 +1,4 @@
+- name: Run lint
+  command: "helm lint {{ helm_chart }}"
+  args:
+    chdir: "{{ zuul_work_dir }}"

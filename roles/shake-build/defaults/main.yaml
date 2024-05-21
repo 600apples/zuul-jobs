@@ -1,0 +1,4 @@
+shake_report_name: "shake.html"
+shake_target: ""
+
+zuul_work_dir: "{{ zuul.project.src_dir }}"

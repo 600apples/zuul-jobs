@@ -1,0 +1,31 @@
+---
+- name: Set phoronix log path
+  set_fact:
+    log_path: "{{ zuul.executor.log_root }}/"
+  when: log_path is not defined
+
+- name: Discover the last result path
+  shell: |
+    set -o pipefail
+    ls -td ~/test-results/* | head -n 1
+  args:
+    executable: /bin/bash
+  register: result_path
+
+- name: Collect phoronix result
+  synchronize:
+    src: "{{ result_path.stdout }}/"
+    dest: "{{ log_path }}/phoronix-results-{{ ansible_hostname }}/"
+    mode: pull
+    owner: no
+    group: no
+
+- name: Return site artifact location to Zuul
+  zuul_return:
+    data:
+      zuul:
+        artifacts:
+          - name: "Phoronix test result"
+            metadata:
+              type: phoronix_result
+            url: "phoronix-results-{{ ansible_hostname }}/"

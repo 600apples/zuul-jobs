@@ -1,0 +1,5 @@
+---
+- hosts: all
+  roles:
+  - ensure-helm
+  - ensure-chart-testing

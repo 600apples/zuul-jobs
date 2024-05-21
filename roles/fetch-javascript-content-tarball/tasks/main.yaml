@@ -1,0 +1,68 @@
+- name: Set create_tarball_directory from javascript_content_directory
+  set_fact:
+    create_tarball_directory: '{{ javascript_content_dir }}'
+  when:
+    - create_tarball_directory is not defined
+    - javascript_content_dir is defined
+
+- name: Create tarball
+  shell: "tar czf {{ ansible_user_dir }}/{{ zuul_work_dir }}/build.tgz *"
+  args:
+    chdir: "{{ zuul_work_dir }}/{{ create_tarball_directory }}"
+  when: create_tarball_directory is defined
+  tags:
+    # Ignore ANSIBLE0006: tar used in place of unarchive module
+    - skip_ansible_lint
+
+- name: Rename tarball for uploading
+  shell: |
+    mkdir -p dist
+    cp *.tgz dist/{{ zuul.project.short_name }}-content-latest.tar.gz
+  args:
+    chdir: "{{ zuul_work_dir }}"
+  tags:
+    # Ignore ANSIBLE0007: No need to use file module instead of mkdir
+    - skip_ansible_lint
+
+- name: Rename tagged tarball for uploading
+  when: zuul.tag is defined
+  shell: |
+    cp *.tgz dist/{{ zuul.project.short_name }}-content-{{ zuul.tag }}.tar.gz
+  args:
+    chdir: "{{ zuul_work_dir }}"
+
+- name: Ensure artifacts directory exists
+  file:
+    path: "{{ zuul.executor.work_root }}/artifacts"
+    state: directory
+    mode: 0755
+  delegate_to: localhost
+
+- name: Collect artifacts
+  synchronize:
+    dest: "{{ zuul.executor.work_root }}/artifacts/"
+    mode: pull
+    src: "{{ zuul_work_dir }}/dist/"
+    verify_host: true
+    owner: no
+    group: no
+
+- name: Find content tarball
+  find:
+    file_type: file
+    paths: "{{ zuul_work_dir }}/dist/"
+    patterns: "*.tar.gz"
+  register: result
+
+- name: Return artifacts to Zuul
+  loop: "{{ result.files }}"
+  loop_control:
+    loop_var: zj_item
+  zuul_return:
+    data:
+      zuul:
+        artifacts:
+          - name: Javascript content archive
+            url: "artifacts/{{ zj_item.path | basename }}"
+            metadata:
+              type: javascript_content

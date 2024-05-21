@@ -1,0 +1,11 @@
+- name: Check hlint version
+  command: hlint --version
+  failed_when: false
+  register: _hlint_version
+
+- name: Install hlint
+  package:
+    name: "hlint"
+    state: present
+  become: yes
+  when: "_hlint_version.rc != 0"

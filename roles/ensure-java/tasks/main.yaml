@@ -1,0 +1,10 @@
+- name: Update apt cache
+  become: true
+  apt:
+    update_cache: yes
+
+- name: Install JDK
+  become: true
+  package:
+    name: openjdk-{{ java_version }}-jdk
+    state: present

@@ -1,0 +1,119 @@
+- name: "Compute origin repo name"
+  set_fact:
+    origin_repo_name: "{{ origin_repos[origin_version.split('.')[:-1] | join('.') | default('unknown')] }}"
+
+- name: "Fail if repo name is undefined"
+  fail:
+    msg: |
+      Unknown openshift version: {{ origin_version }}.
+      It needs to be defined in {{ opendev_url }}/roles/ensure-openshift/defaults/main.yaml
+  when: origin_repo_name == 'unknown'
+  vars:
+    opendev_url: https://opendev.org/zuul/zuul-jobs/src/branch/master/
+
+- name: "Install origin pass repository {{ origin_repo_name }}"
+  become: true
+  copy:
+    content: |
+      [centos-openshift-origin{{ origin_repo_name }}]
+      name=CentOS OpenShift Origin
+      baseurl=http://mirror.centos.org/centos/7/paas/x86_64/openshift-origin{{ origin_repo_name }}/
+      enabled=1
+      gpgcheck=1
+      gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-SIG-PaaS
+    dest: /etc/yum.repos.d/origin-pass.repo
+    mode: 0644
+
+# https://www.centos.org/keys/RPM-GPG-KEY-CentOS-SIG-PaaS
+- name: "Install RPM-GPG-KEY-CentOS-SIG-PaaS"
+  become: true
+  copy:
+    content: |
+      -----BEGIN PGP PUBLIC KEY BLOCK-----
+      Version: GnuPG v2.0.22 (GNU/Linux)
+
+      mQENBFc8iwUBCADadBGYmA2nFvq79/5uxUQOiPqC/QflWcPX1B6SQKniUhyqaSes
+      gNMJsPppKRV4NZKITcL8lZ90+Gds0fmL3b5xz1r5Rfm3ilSItEqeGlLIJZBvANyx
+      rAT3q8EgkkVRyhZPseUMZj04O8OKnt1jrHakVkOp0lJClqhZ+bs/7yLRmaLXTcum
+      +ouqUKzQoAEDnqe9nJmmJhC6n2vg7o0PCo/9qOf/scQbv4FNoJfmkcVLRmwmqzgh
+      bGj6QaOgij3sl94pZ3HFop4f+eU0kNbyt9J18fKI8X0DdHkDW8kO1UwwHT2ibJ1t
+      mBaUsE1zZ0DvfyFad1xXAgm+SIlJgdpPvPNLABEBAAG0WUNlbnRPUyBQYWFTIFNJ
+      RyAoaHR0cHM6Ly93aWtpLmNlbnRvcy5vcmcvU3BlY2lhbEludGVyZXN0R3JvdXAv
+      UGFhUykgPHNlY3VyaXR5QGNlbnRvcy5vcmc+iQE5BBMBAgAjBQJXPIsFAhsDBwsJ
+      CAcDAgEGFQgCCQoLBBYCAwECHgECF4AACgkQw0xb1C8pfsyT2gf9FqJoc8oZ+T5A
+      8cZslMyCWziPi0o7kd/Rw91T7dkV+VIC+sFlVga7fkPEAiD8U7JFE+a1IlcjfGuY
+      my4S6UH8K5zL36CRg2MF112HE5TWoBxF3KZg9nOJQ2NLapJowaP8uITYG4vlgV3g
+      GJD2OC191tjcqmelFnhAN0EBdxrRrBJ7tr3OCtL6bJ6NPQ0bXPI2Fjbm7SbxTfpE
+      ggEU8R7WZQApYgl8zRfyS12SfpFV8ZU+lIBmJaU1qaY4/BmNgG6e7clmq8xVZQLg
+      ZH9qi9+HPh+80+8/WhJUddlVXc2g6c4VjnnFpZfsrMdTAFuEsrjkyaxqeBjXCgbb
+      pzGjTg0LXg==
+      =CVSF
+      -----END PGP PUBLIC KEY BLOCK-----
+    dest: /etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-SIG-PaaS
+    mode: 0644
+
+- name: Install requirements
+  yum:
+    name: "{{ zj_package }}"
+  with_items:
+    - origin
+    - docker
+  loop_control:
+    loop_var: zj_package
+  become: yes
+
+- name: Fix docker start options
+  lineinfile:
+    dest: /etc/sysconfig/docker
+    regexp: "^OPTIONS="
+    line: "OPTIONS='--selinux-enabled --log-driver=journald --signature-verification=false --insecure-registry 172.30.0.0/16'"
+  become: yes
+
+# See: https://github.com/openshift/origin/issues/15038
+- name: Fix rhel secret issue
+  file:
+    path: /usr/share/rhel/secrets
+    state: absent
+  become: yes
+
+- name: Ensure "docker" group exists
+  become: true
+  group:
+    name: docker
+    state: present
+
+- name: Add user to docker group
+  become: true
+  user:
+    name: "{{ ansible_user }}"
+    groups:
+      - docker
+    append: yes
+
+- name: Start docker service
+  service:
+    name: docker
+    state: started
+  become: yes
+
+- name: Pull origin images
+  command: "docker pull docker.io/openshift/{{ zj_docker_image }}:{{ origin_version }}"
+  with_items:
+    - origin-web-console
+    - origin-docker-registry
+    - origin-haproxy-router
+    - origin-deployer
+    - origin-pod
+    - origin
+  loop_control:
+    loop_var: zj_docker_image
+  become: yes
+
+- name: Set group ownership of docker socket
+  become: true
+  file:
+    path: /var/run/docker.sock
+    group: docker
+
+- name: Reset ssh connection to pick up docker group
+  meta: reset_connection

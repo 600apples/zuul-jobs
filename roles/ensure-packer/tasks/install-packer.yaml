@@ -1,0 +1,61 @@
+- name: Get packer checksums
+  uri:
+    url: "{{ hashicorp_releases_fqdn }}/\
+          packer/{{ packer_version }}/packer_{{ packer_version }}_SHA256SUMS"
+    return_content: true
+  register: packer_version_checksums
+
+- name: Set packer checksum
+  set_fact:
+    packer_checksum: "{{ \
+        packer_version_checksums.content | \
+        regex_search( '[a-z0-9]+  ' + packer_package) | \
+        regex_replace( '(?P<checksum>[a-z0-9]+)  ' + packer_package, '\\g<checksum>')
+      }}"
+
+- name: Create temp directory
+  tempfile:
+    state: directory
+  register: packer_install_tempdir
+
+- name: Download packer archive
+  get_url:
+    url: "{{ hashicorp_releases_fqdn }}/\
+      packer/{{ packer_version }}/{{ packer_package }}.zip"
+    dest: "{{ packer_install_tempdir.path }}/{{ packer_package }}.zip"
+    checksum: "sha256:{{ packer_checksum }}"
+
+- name: Create packer package directory
+  file:
+    path: "{{ packer_install_tempdir.path }}/{{ packer_package }}"
+    state: directory
+    mode: 0700
+
+- name: Unarchive packer
+  unarchive:
+    src: "{{ packer_install_tempdir.path }}/{{ packer_package }}.zip"
+    dest: "{{ packer_install_tempdir.path }}/{{ packer_package }}"
+    remote_src: yes
+    mode: 0600
+
+- name: Make sure installation directory exists
+  file:
+    path: "{{ packer_install_dir }}"
+    state: directory
+    mode: 0755
+
+- name: Install packer
+  copy:
+    src: "{{ packer_install_tempdir.path }}/{{ packer_package }}/packer"
+    dest: "{{ packer_install_dir }}/packer"
+    mode: 0755
+    owner: "{{ ansible_user }}"
+    remote_src: yes
+
+- name: Set packer executable fact
+  set_fact:
+    packer_executable: "{{ packer_install_dir }}/packer"
+    cacheable: true
+
+- name: Output packer version
+  command: "{{ packer_executable }} version"

@@ -1,0 +1,23 @@
+- name: Create temp directory
+  tempfile:
+    state: directory
+  register: go_archive_tempdir
+
+- name: Get archive checksum
+  uri:
+    url: "https://dl.google.com/go/go{{ go_version }}.{{ go_os }}-{{ go_arch }}.tar.gz.sha256"
+    return_content: true
+  register: go_archive_checksum
+
+- name: Download go archive
+  get_url:
+    url: "https://dl.google.com/go/go{{ go_version }}.{{ go_os }}-{{ go_arch }}.tar.gz"
+    dest: "{{ go_archive_tempdir.path }}/go{{ go_version }}.{{ go_os }}-{{ go_arch }}.tar.gz"
+    checksum: "sha256:{{ go_archive_checksum.content }}"
+
+- name: Install go
+  unarchive:
+    src: "{{ go_archive_tempdir.path }}/go{{ go_version }}.{{ go_os }}-{{ go_arch }}.tar.gz"
+    dest: "{{ go_install_dir }}"
+    remote_src: yes
+  become: true

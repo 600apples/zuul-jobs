@@ -1,0 +1,21 @@
+---
+- name: Include find tasks
+  include_tasks: find.yaml
+  when: bindep_file is not defined
+
+- name: Include bindep tasks
+  include_tasks: find-bindep.yaml
+  when: bindep_file is defined
+
+- name: Include install tasks
+  include_tasks: install.yaml
+  when:
+    - bindep_file is defined
+    - bindep_command is not defined
+
+- name: Include package tasks
+  include_tasks: packages.yaml
+  loop: "{{ bindep_file is string | ternary([bindep_file], bindep_file) }}"
+  loop_control:
+    loop_var: zj_bindep_file
+  when: bindep_file is defined

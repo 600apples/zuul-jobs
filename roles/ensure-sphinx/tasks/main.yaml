@@ -1,0 +1,70 @@
+- name: Install pip
+  include_role:
+    name: ensure-pip
+
+# NOTE: gettext command is provided by gettext-base package,
+# so we need to check a command provided by gettext package.
+- name: Check for gettext installed
+  command: bash -c "type msgmerge"
+  failed_when: false
+  register: gettext_exists
+
+# TODO(mordred) Make this a list of known binary depends that sphinx needs
+- name: Install gettext package
+  package:
+    name: gettext
+    state: present
+  become: yes
+  when: gettext_exists.rc != 0
+
+- name: Find Constraints File
+  include_role:
+    name: find-constraints
+
+# We're not using with_first_found because the files are remote, not local.
+# We want to use doc/requirements.txt or releasenotes/requirements.txt
+# if it exists else we want to fallback to test-requirements.txt.
+- name: Get requirements files
+  shell:
+    executable: /bin/bash
+    chdir: "{{ zuul_work_dir }}"
+    cmd: |
+      for f in doc/requirements.txt releasenotes/requirements.txt test-requirements.txt ; do
+          if [ -f $f ] ; then
+              echo $f
+              break
+          fi
+      done
+  register: requirements_file
+
+# Ensure we have the latest pip and setuptools in the sphinx venv, not the system
+# one.  Older pips don't do things like parse version constraints or
+# rust build flags correctly, setuptools<39.2.0 do not support reading version
+# from file and some jobs like the translate jobs
+# use this environment to install from master requirements.txt that
+# needs this sort of thing to work.
+- name: Setup virtual environment
+  pip:
+    name:
+      - pip
+      - setuptools
+    virtualenv: '{{ zuul_work_virtualenv }}'
+    virtualenv_command: '{{ ensure_pip_virtualenv_command }}'
+    extra_args: '--upgrade'
+
+- name: Install base doc building packages
+  pip:
+    name: "{{ doc_building_packages | union(doc_building_extra_packages) }}"
+    chdir: "{{ zuul_work_dir }}"
+    virtualenv: "{{ zuul_work_virtualenv }}"
+    virtualenv_command: "{{ ensure_pip_virtualenv_command }}"
+    extra_args: "{{ upper_constraints | default(omit) }}"
+
+- name: Install found doc requirements
+  pip:
+    requirements: "{{ requirements_file.stdout }}"
+    chdir: "{{ zuul_work_dir }}"
+    virtualenv: "{{ zuul_work_virtualenv }}"
+    virtualenv_command: "{{ ensure_pip_virtualenv_command }}"
+    extra_args: "{{ upper_constraints | default(omit) }}"
+  when: requirements_file.stdout_lines

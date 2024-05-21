@@ -1,0 +1,11 @@
+- hosts: all
+  tasks:
+    - name: Install helm charts
+      include_role:
+        name: helm-template
+      vars:
+        helm_release_name: "{{ zj_item.key }}"
+        helm_chart: "{{ zj_item.value }}"
+      loop: "{{ helm_charts | dict2items }}"
+      loop_control:
+        loop_var: 'zj_item'

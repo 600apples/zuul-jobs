@@ -1,0 +1,44 @@
+- name: List pods
+  command: "kubectl get pod {% if collect_kubernetes_logs_namespace is defined %}-n {{ collect_kubernetes_logs_namespace }}{% endif %} -o=custom-columns=NAME:.metadata.name --no-headers"
+  register: podlist
+  failed_when: false
+
+- name: Create pod describe dir
+  file:
+    path: "{{ ansible_user_dir }}/zuul-output/logs/pods"
+    state: directory
+    mode: 0755
+
+- name: Save pod descriptions
+  loop: "{{ podlist.stdout_lines | default([]) }}"
+  loop_control:
+    loop_var: zj_pod_name
+  shell: "kubectl describe po {{ zj_pod_name }} {% if collect_kubernetes_logs_namespace is defined %}-n {{ collect_kubernetes_logs_namespace }}{% endif %} &> {{ ansible_user_dir }}/zuul-output/logs/pods/{{ zj_pod_name }}.txt"
+  args:
+    executable: /bin/bash
+  failed_when: false
+
+- name: Open pod descriptions permissions
+  file:
+    dest: "{{ ansible_user_dir }}/zuul-output/logs/pods"
+    mode: u=rwX,g=rX,o=rX
+    recurse: yes
+
+- name: Create kubelet log dir
+  file:
+    path: "{{ ansible_user_dir }}/zuul-output/logs/kubelet"
+    state: directory
+    mode: 0755
+
+- name: Save kubelet logs
+  shell: "journalctl -u kubelet &> {{ ansible_user_dir }}/zuul-output/logs/kubelet/kubelet.txt"
+  args:
+    executable: /bin/bash
+  failed_when: false
+  become: yes
+
+- name: Open kubelet logs permissions
+  file:
+    dest: "{{ ansible_user_dir }}/zuul-output/logs/kubelet"
+    mode: u=rwX,g=rX,o=rX
+    recurse: yes

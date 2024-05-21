@@ -1,0 +1,16 @@
+# The pip that comes with Xenial (v8) does not understand how to
+# fallback to pypi in the OpenDev mirror setup.  The virtualenv
+# package tries to use the system pip to bootstrap the environment it
+# creates, and thus the xenial packaged virtualenv can not create a
+# working environment.  We pre-run ensure-pip there to bring in our
+# backported pip9 and make this work.
+- name: Use ensure-pip for Xenial
+  include_role:
+    name: ensure-pip
+  when: ansible_distribution_release == 'xenial'
+
+- name: Install virtualenv
+  package:
+    name:
+      - virtualenv
+  become: yes

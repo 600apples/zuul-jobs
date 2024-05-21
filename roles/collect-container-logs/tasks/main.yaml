@@ -1,0 +1,28 @@
+- name: Create container log dir
+  file:
+    path: "{{ ansible_user_dir }}/zuul-output/logs/{{ container_command }}"
+    state: directory
+    mode: 0755
+
+- name: List containers
+  command: "{{ container_command }} ps -a --format '{{ '{{ .Names }}' }}'"
+  register: docker_containers
+  failed_when: false
+
+- name: Save container logs
+  loop: "{{ docker_containers.stdout_lines | default([]) }}"
+  # We can't use the default 'item' because roles may be used in
+  # higher level loops and 'item' could conflict in that case.
+  loop_control:
+    loop_var: zj_container_name
+  shell: "{{ container_command }} logs {{ zj_container_name }} &> {{ ansible_user_dir }}/zuul-output/logs/{{ container_command }}/{{ zj_container_name }}.txt"
+  args:
+    executable: /bin/bash
+  failed_when: false
+  when: docker_containers.rc == 0
+
+- name: Open container logs permissions
+  file:
+    dest: "{{ ansible_user_dir }}/zuul-output/logs/{{ container_command }}"
+    mode: u=rwX,g=rX,o=rX
+    recurse: yes

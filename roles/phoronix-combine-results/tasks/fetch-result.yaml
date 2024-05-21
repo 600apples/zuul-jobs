@@ -1,0 +1,11 @@
+---
+- name: Create result dir
+  file:
+    path: "{{ ansible_env.HOME }}/test-results/{{ zj_artifact.url.rstrip('/') | basename }}"
+    state: directory
+    mode: 0755
+
+- name: Fetch artifact
+  get_url:
+    url: "{{ zj_artifact.url }}/composite.xml"
+    dest: "{{ ansible_env.HOME }}/test-results/{{ item.url.rstrip('/') | basename }}/composite.xml"

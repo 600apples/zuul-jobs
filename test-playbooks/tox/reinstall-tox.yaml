@@ -1,0 +1,17 @@
+- hosts: all
+  name: Remove any pre-installed tox
+  tasks:
+    - name: Remove tox package with pip
+      command: pip uninstall -y tox
+      become: true
+      failed_when: false
+    - name: Remove tox package with pip3
+      command: pip3 uninstall -y tox
+      become: true
+      failed_when: false
+    - name: Verify tox is not installed
+      command: "tox --version"
+      register: result
+      failed_when: result.rc == 0
+  roles:
+    - ensure-tox

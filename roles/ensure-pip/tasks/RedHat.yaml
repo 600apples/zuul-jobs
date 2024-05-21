@@ -1,0 +1,36 @@
+- name: Install Python 3 pip
+  package:
+    name:
+      - python3-pip
+      - python3-setuptools
+      - python3-wheel
+    state: present
+  become: yes
+
+- name: Install pip
+  become: yes
+  when: ensure_pip_from_packages_with_python2
+  block:
+    - name: Check for EPEL repository
+      stat:
+        path: /etc/yum.repos.d/epel.repo
+      register: _epel_repo
+
+    - name: Fail with instructions when EPEL is not installed
+      fail:
+        msg: |
+          The role `ensure-pip` cannot continue on this nodeset.
+          Install epel-release or set this Zuul job variable:
+
+             ensure_pip_from_packages_with_python2: false
+      when: not _epel_repo.stat.exists
+
+    - name: Install Python 2 pip
+      yum:
+        name:
+          - python-pip
+          - python-setuptools
+          - python-virtualenv
+          - python-wheel
+        state: present
+        enablerepo: epel

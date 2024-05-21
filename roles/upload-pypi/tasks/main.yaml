@@ -1,0 +1,48 @@
+- name: Validate password/token combo
+  fail:
+    msg: 'Specify either username/password or api_token'
+  when: >
+      (pypi_info.api_token is defined) and
+      ((pypi_info.username is defined) or (pypi_info.password is defined))
+
+- name: Create .pypirc configuration file tempfile
+  tempfile:
+    state: file
+  register: _pypirc_tmp
+
+- name: Create .pypirc configuration file
+  template:
+    dest: "{{ _pypirc_tmp.path }}"
+    mode: 0400
+    src: .pypirc.j2
+
+- name: Find wheels to upload
+  find:
+    paths: "{{ pypi_path }}"
+    patterns: "*.whl"
+    excludes: "*-linux_x86_64.whl"
+  register: found_wheels
+
+- name: Report no wheels to be uploaded
+  debug:
+    msg: "Found no wheels to upload: {{ found_wheels.msg }}"
+  when: found_wheels.files == []
+
+- name: Find tarballs to upload
+  find:
+    paths: "{{ pypi_path }}"
+    patterns: "*.tar.gz"
+  register: found_tarballs
+
+- name: Report no tarballs to be uploaded
+  debug:
+    msg: "Found no tarballs to upload: {{ found_tarballs.msg }}"
+  when: found_tarballs.files == []
+
+- name: Upload wheels and sdist tarballs with twine
+  command: "{{ pypi_twine_executable }} upload --config-file {{ _pypirc_tmp.path }} {% if pypi_twine_skip_existing %}--skip-existing{% endif %} -r {{ pypi_repository }} {{ found_wheels.files | map(attribute='path') | join(' ') }} {{ found_tarballs.files | map(attribute='path') | join(' ') }}"
+
+- name: Delete .pypirc configuration file
+  file:
+    path: "{{ _pypirc_tmp.path }}"
+    state: absent

@@ -1,0 +1,14 @@
+- name: Find out ruby gem user directory
+  command: ruby -e 'puts Gem.user_dir'
+  register: gem_user_dir
+
+- name: Install pdk gem
+  gem:
+    name: pdk
+
+- name: Build puppet module
+  command: pdk build --force
+  args:
+    chdir: "{{ puppet_module_chdir }}"
+  environment:
+    PATH: "{{ gem_user_dir.stdout }}/bin:{{ ansible_env.PATH }}"

@@ -1,0 +1,2 @@
+helm_wait_for_pods: true
+zuul_work_dir: "{{ zuul.project.src_dir }}"

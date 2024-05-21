@@ -1,0 +1,3 @@
+buildset_registry_root: "{{ ansible_user_dir }}/buildset_registry"
+buildset_registry_port: 5000
+container_command: docker

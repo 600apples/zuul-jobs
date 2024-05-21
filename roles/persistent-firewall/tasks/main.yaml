@@ -1,0 +1,33 @@
+- name: List current ipv4 rules
+  become: yes
+  # Using shell to try and debug why this task when run sometimes returns -13
+  shell: iptables-save
+  changed_when: false
+  failed_when: iptables_rules.stdout is not defined
+  retries: 5
+  delay: 1
+  register: iptables_rules
+  tags:
+    - skip_ansible_lint
+
+- name: List current ipv6 rules
+  become: yes
+  # Using shell to try and debug why this task when run sometimes returns -13
+  shell: ip6tables-save
+  changed_when: false
+  failed_when: ip6tables_rules.stdout is not defined
+  retries: 5
+  delay: 1
+  register: ip6tables_rules
+  tags:
+    - skip_ansible_lint
+
+- name: Configure persistent iptables rules
+  include_tasks: "{{ zj_distro_os }}"
+  with_first_found:
+    - "persist/{{ ansible_distribution }}_{{ ansible_distribution_release }}.yaml"
+    - "persist/{{ ansible_distribution }}.yaml"
+    - "persist/{{ ansible_os_family }}.yaml"
+    - "persist/default.yaml"
+  loop_control:
+    loop_var: zj_distro_os

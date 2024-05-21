@@ -1,0 +1,8 @@
+- hosts: all
+  tasks:
+    - name: Describe dockertest pod
+      command: kubectl describe pod/quaytest
+      ignore_errors: true
+    - name: Describe upstream-dockertest pod
+      command: kubectl describe pod/upstream-dockertest
+      ignore_errors: true

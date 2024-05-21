@@ -1,0 +1,34 @@
+# This job inherits from a buildset-registry job, so it should already
+# be running locally and have any speculative images loaded into it.
+- hosts: all
+  tasks:
+    - name: Load real buildset registry connection info
+      set_fact:
+        real_buildset_registry: "{{ (lookup('file', zuul.executor.result_data_file) | from_json)['secret_data']['buildset_registry'] }}"
+      no_log: true
+    # This should now use the speculative image, because we've already
+    # run use-buildset-registry.
+    - name: Run the fake buildset registry
+      include_role:
+        name: run-buildset-registry
+      vars:
+        buildset_registry_root: "{{ ansible_user_dir }}/fake_buildset_registry"
+        buildset_registry_port: 9000
+    # Leave that zuul return so that dependent jobs use the fake one
+    - name: Load fake buildset registry connection info
+      set_fact:
+        fake_buildset_registry: "{{ (lookup('file', zuul.executor.result_data_file) | from_json)['secret_data']['buildset_registry'] }}"
+      no_log: true
+    - name: Build a test image
+      command: "docker build . -t zuul/testimage:latest"
+      args:
+        chdir: "{{ zuul.project.src_dir }}/test-playbooks/registry/docker"
+    - name: Push test image into fake buildset registry
+      command: "skopeo copy --dest-tls-verify=false --dest-creds {{ buildset_registry.username }}:{{ buildset_registry.password }} docker-daemon:zuul/testimage:latest docker://localhost:9000/zuul/docker-testimage:latest"
+    - name: Push test image into fake buildset registry
+      command: "skopeo copy --dest-tls-verify=false --dest-creds {{ buildset_registry.username }}:{{ buildset_registry.password }} docker-daemon:zuul/testimage:latest docker://localhost:9000/quay.io/zuul/quay-testimage:latest"
+    - name: Pause the job
+      zuul_return:
+        data:
+          zuul:
+            pause: true

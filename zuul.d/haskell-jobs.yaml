@@ -1,0 +1,44 @@
+- job:
+    name: cabal-test
+    description: |
+      Run cabal test for a Haskell project.
+
+      Responds to these variables:
+
+      .. zuul:jobvar:: cabal_target
+
+         The cabal target(s) to test.
+
+      .. zuul:jobvar:: ghc_version
+
+         Use the specified ghc version (``latest`` picks the latest).
+    run: playbooks/haskell/cabal.yaml
+    pre-run: playbooks/haskell/pre.yaml
+    vars:
+      ghc_version: latest
+
+- job:
+    name: haskell-stack-test
+    description: |
+      Run stack test for a Haskell project.
+
+      .. zuul:jobvar:: haskell_stack_target
+
+         The stack target(s) to test.
+
+      .. zuul:jobvar:: lts_version
+
+         Use the specified lts version.
+    run: playbooks/haskell/stack.yaml
+    pre-run: playbooks/haskell/pre-stack.yaml
+    vars:
+      ghc_version: latest
+
+- job:
+    name: hlint
+    description: |
+      Run haskell source code suggestions.
+
+      This job produces an hlint.html report.
+    run: playbooks/haskell/hlint.yaml
+    pre-run: playbooks/haskell/pre-hlint.yaml

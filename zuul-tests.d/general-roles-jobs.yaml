@@ -1,0 +1,840 @@
+- job:
+    name: zuul-jobs-test-add-authorized-keys
+    description: Test the add-authorized-keys role
+    files:
+      - roles/add-authorized-keys/.*
+    run: test-playbooks/simple-role-test.yaml
+    vars:
+      role_name: add-authorized-keys
+      public_keys:
+        - public_key: |
+            ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQChDsP7zEq1JxPLb0Zqj43LIlVoXONCQ1Ko5i9ih/4xm6p0Jn00kpCoVQMb4X2Zys1vWTgpd+r9C/ZoYPFeWuQ8rPCbw4VsocMdwkz7mCPkMDVyPwERjRgt1sTl9WGgtlm2zq/76bmEpuY6PM+nFtJS7UE4XlfoHFK3pR/hgMFi8CX/ILAdtpU96dW2vmXkUt5yj05GHMXKeSU+B5pUEsERgQknH3JBdc/jvKv9dg5zt0jPM6hu5iwgIbMNHydxg4huFO6gKuP+mCNQctK23VMxVXSOYivx8qxu4uzGnBZna01Gi8mY5An4mIQTdcO3KpppOceoDjfEFIOiOnBVoggH testkey
+
+- job:
+    name: zuul-jobs-test-add-gpgkey
+    description: Test the add-gpgkey role
+    files:
+      - roles/add-gpgkey/.*
+    run: test-playbooks/simple-role-test.yaml
+    vars:
+      role_name: add-gpgkey
+      gpg_key:
+        private: |
+          -----BEGIN PGP PRIVATE KEY BLOCK-----
+
+          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
+          skaW7bI=
+          =vRs2
+          -----END PGP PRIVATE KEY BLOCK-----
+
+- job:
+    name: zuul-jobs-test-add-sshkey
+    description: Test the add-sshkey role
+    files:
+      - roles/add-sshkey/.*
+    run: test-playbooks/simple-role-test.yaml
+    vars:
+      role_name: add-sshkey
+      ssh_key:
+        fqdn: logs.example.org
+        ssh_known_hosts: |
+          logs.example.org ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDDcvLuGLagUAZfc0BThLus8ufSPCrIhDtG0BdXvhblJjvIbkuELD3dRWRZVSYZAdzGZRY3t6vTAcguTrkbQg5ngXfdfF+OKPkaH8DiZwAX/1g/iRXhInkZTGBVqHo9pLAMeNNwviSy2JjpTqdD6fLEkHwW+uw4E2YZhYivctTSbOepMkzAtFV0w5cpyBzjAT/Hax2x5un6es8R0Iw3AAnUmtapn5e5NCrg2rPNpd0nve84wUavvbC2DeGDOZQdnIahwo60Sder5ZE/x6cG39bkSDdgFQArAzrNrH6BHmNGjfFPpnGmfc7P8gQwDPtMf02HvKapqATXpIxdbSGimWLL
+        ssh_private_key: |
+          -----BEGIN RSA PRIVATE KEY-----
+          MIIEpQIBAAKCAQEAoQ7D+8xKtScTy29Gao+NyyJVaFzjQkNSqOYvYof+MZuqdCZ9
+          NJKQqFUDG+F9mcrNb1k4KXfq/Qv2aGDxXlrkPKzwm8OFbKHDHcJM+5gj5DA1cj8B
+          EY0YLdbE5fVhoLZZts6v++m5hKbmOjzPpxbSUu1BOF5X6BxSt6Uf4YDBYvAl/yCw
+          HbaVPenVtr5l5FLeco9ORhzFynklPgeaVBLBEYEJJx9yQXXP47yr/XYOc7dIzzOo
+          buYsICGzDR8ncYOIbhTuoCrj/pgjUHLStt1TMVV0jmIr8fKsbuLsxpwWZ2tNRovJ
+          mOQJ+JiEE3XDtyqaaTnHqA43xBSDojpwVaIIBwIDAQABAoIBAQCJSUTWBjZIZJ8C
+          8j9b5jI/zWxwIX22phx3zH7nxnRvZPnPOF/RyH12f8C+q1+dELo9CBhPgODWArRw
+          FPKqM2AKOICAxhGdn+XqIA3vCKjPgiiM0hffFh5eNIxyWNB3ZfjjUxu/6GMzJ/Fo
+          Ax4el92Awqytl/3m5P29fQvH9TDjW+cVYkNxno8Zcz2f7+f9hNEvvVVwtvGf0Gps
+          zdtVlQ002zU98d9AKkQocYme1x3n52wpreEt6g/ylmHn+H0jEVt5Rxa7chknUDyk
+          VZ+CCQSPQSKWBxDXmkl6JJ4niQdYLSMOnaAvYGpk5dcbgsmfGMMpRWapzFnpAn/E
+          dpl5xVVBAoGBANNKb/daI6RZiVUX/7LmKU9JFSkopOmlTq3kIwuDfjvzPNSl3hfQ
+          MYeh6JfIs3DshfB4SfuUep5M67fqfn97xW1I7/PeSUaTnTVHKD4SeR6U+3tBqbRW
+          Yk+GzuN0QHOKoUvudOFn+VYWN7qqf/D462Yg0Wbd98LLkMfCXiKTIPhNAoGBAMMj
+          Nybfyxn9CeomqBR8GwwwofieReGKOruy8JT1PSU0qgBntP5Eymcvp8icSTX3fvkp
+          9SxqCnyliiIAvgjM8kfSdp9Qhfq2WQTkN5wMk/sEExBmTVBZtRd87bAuXHKl/3D+
+          ooP5oUzhdeKEJ1P2b7t6MKeMOks6AbIXQxKNKyujAoGAajleGQjkKlgpRvKNxq8X
+          zZh8XvjkD+Lfr2Smib9N023yAyZwhaBRhlLL0KNCM1915vNSnnyDONqLFyd4+TaM
+          hujIWd5DEIxd2M8xWCOJaOqVk93rJ5LWUg0ALjHfxTbI6Je1gyz2mWUKF3poYAmE
+          rw+ItyKY0QHug78f/FnjlXECgYEAkmCzOWT8zKTksBGJWbxy6aT9iyrmzrXLMwua
+          rpJ76JHlyGIDAg2GKvsziCe8P1BFnhCcSlHNRg1DXhhidOWQBNJai01zA0uP4Tx0
+          fols5An9ZvrmmhSA5HqhLdzJGnNs90z7ibZTCgHCVUW+3pvo2qBhKP3mqJF9viL2
+          /E6LCLMCgYEAxIngug5qRSUMGXy8Y2Xjbs/Vsao1Z6xbp16c2AXR+jXQRoHdoTYx
+          +HUQ5aBGZc5yxOQpplRVmSxAWTFjsgzvbi0V4XF5EUZydMce2ufkrfSKGUcF8kiW
+          A+tEIZhDiZh2NZoXXAKqV3pH6nOF9kPgRymy7de7BCoQx3rB7YgXpOk=
+          -----END RSA PRIVATE KEY-----
+
+- job:
+    name: zuul-jobs-test-encrypt-file
+    description: |
+      Test encrypt-file role
+    files:
+      - roles/encrypt-file/.*
+    run: test-playbooks/encrypt-file.yaml
+
+- job:
+    name: zuul-jobs-test-base-roles
+    description: |
+      Tests roles in the 'base' job
+
+      These roles are tested together in this job because testing them
+      relies on using base-minimal, which avoids running these roles.
+      However, for the job to fully function, they all need to have
+      been run (once) by the end.
+    parent: base-minimal
+    tags: all-platforms
+    abstract: true
+    run: test-playbooks/base-roles/base.yaml
+    # Testing of fetch-zuul-cloner and prepare-workspace-git need
+    # these repos in required-projects
+    required-projects:
+      - opendev/base-jobs
+      - zuul/project-config
+    files:
+      - ^roles/configure-mirrors/.*
+      - ^roles/emit-job-header/.*
+      - ^roles/ensure-output-dirs/.*
+      - ^roles/fetch-output/.*
+      - ^roles/fetch-subunit-output/.*
+      - ^roles/fetch-zuul-cloner/.*
+      - ^roles/set-zuul-log-path-fact/.*
+      - ^roles/prepare-workspace-git/.*
+      - ^roles/validate-host/.*
+      - ^test-playbooks/base-roles/.*
+
+- job:
+    name: zuul-jobs-test-base-roles-centos-8-stream
+    description: Tests roles in the 'base' job on centos-8-stream
+    parent: zuul-jobs-test-base-roles
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: centos-8-stream
+          label: centos-8-stream
+
+- job:
+    name: zuul-jobs-test-base-roles-centos-9-stream
+    description: Tests roles in the 'base' job on centos-9-stream
+    parent: zuul-jobs-test-base-roles
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: centos-9-stream
+          label: centos-9-stream
+
+- job:
+    name: zuul-jobs-test-base-roles-debian-bookworm
+    description: Tests roles in the 'base' job on debian-bookworm
+    parent: zuul-jobs-test-base-roles
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: debian-bookworm
+          label: debian-bookworm
+
+- job:
+    name: zuul-jobs-test-base-roles-debian-bullseye
+    description: Tests roles in the 'base' job on debian-bullseye
+    parent: zuul-jobs-test-base-roles
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: debian-bullseye
+          label: debian-bullseye
+
+- job:
+    name: zuul-jobs-test-base-roles-ubuntu-bionic
+    description: Tests roles in the 'base' job on ubuntu-bionic
+    parent: zuul-jobs-test-base-roles
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: ubuntu-bionic
+          label: ubuntu-bionic
+
+- job:
+    name: zuul-jobs-test-base-roles-ubuntu-focal
+    description: Tests roles in the 'base' job on ubuntu-focal
+    parent: zuul-jobs-test-base-roles
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: ubuntu-focal
+          label: ubuntu-focal
+
+- job:
+    name: zuul-jobs-test-base-roles-ubuntu-jammy
+    description: Tests roles in the 'base' job on ubuntu-jammy
+    parent: zuul-jobs-test-base-roles
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: ubuntu-jammy
+          label: ubuntu-jammy
+
+- job:
+    name: zuul-jobs-test-bindep
+    description: Test the bindep role
+    files:
+      - bindep.txt
+      - roles/bindep/.*
+      - test-playbooks/simple-role-test.yaml
+      - test-requirements.txt
+    run: test-playbooks/simple-role-test.yaml
+    vars:
+      role_name: bindep
+    tags: all-platforms
+
+- job:
+    name: zuul-jobs-test-bindep-centos-8-stream
+    description: Test the bindep role on centos-8-stream
+    parent: zuul-jobs-test-bindep
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: centos-8-stream
+          label: centos-8-stream
+
+- job:
+    name: zuul-jobs-test-bindep-centos-9-stream
+    description: Test the bindep role on centos-9-stream
+    parent: zuul-jobs-test-bindep
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: centos-9-stream
+          label: centos-9-stream
+
+- job:
+    name: zuul-jobs-test-bindep-debian-bookworm
+    description: Test the bindep role on debian-bookworm
+    parent: zuul-jobs-test-bindep
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: debian-bookworm
+          label: debian-bookworm
+
+- job:
+    name: zuul-jobs-test-bindep-debian-bullseye
+    description: Test the bindep role on debian-bullseye
+    parent: zuul-jobs-test-bindep
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: debian-bullseye
+          label: debian-bullseye
+
+- job:
+    name: zuul-jobs-test-bindep-ubuntu-bionic
+    description: Test the bindep role on ubuntu-bionic
+    parent: zuul-jobs-test-bindep
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: ubuntu-bionic
+          label: ubuntu-bionic
+
+- job:
+    name: zuul-jobs-test-bindep-ubuntu-focal
+    description: Test the bindep role on ubuntu-focal
+    parent: zuul-jobs-test-bindep
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: ubuntu-focal
+          label: ubuntu-focal
+
+- job:
+    name: zuul-jobs-test-bindep-ubuntu-jammy
+    description: Test the bindep role on ubuntu-jammy
+    parent: zuul-jobs-test-bindep
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: ubuntu-jammy
+          label: ubuntu-jammy
+
+- job:
+    name: zuul-jobs-test-clear-firewall
+    description: Test the clear-firewall role
+    files:
+      - roles/clear-firewall/.*
+    run: test-playbooks/simple-role-test.yaml
+    vars:
+      role_name: clear-firewall
+
+- job:
+    name: zuul-jobs-test-enable-fips
+    description: Test the enable-fips role
+    files:
+      - roles/enable-fips/.*
+    run: test-playbooks/simple-role-test.yaml
+    vars:
+      role_name: enable-fips
+      nslookup_target: opendev.org
+    nodeset:
+      nodes:
+        - name: centos-8-stream
+          label: centos-8-stream
+
+- job:
+    name: zuul-jobs-test-ensure-bazelisk
+    description: Test the ensure-bazelisk role
+    files:
+      - roles/ensure-bazelisk/.*
+    run: test-playbooks/simple-role-test.yaml
+    vars:
+      role_name: ensure-bazelisk
+
+- job:
+    name: zuul-jobs-test-netconsole
+    description: Test the netconsole setup role
+    files:
+      - ^roles/enable-netconsole/.*
+    run: test-playbooks/simple-role-test.yaml
+    vars:
+      role_name: enable-netconsole
+      netconsole_remote_ip: 192.0.2.1
+      netconsole_remote_port: 6666
+
+- job:
+    name: zuul-jobs-test-validate-zone-db
+    description: Test the validate-zone-db role
+    tags: debuntu-platforms
+    files:
+      - ^roles/validate-zone-db/.*
+    run: test-playbooks/simple-role-test.yaml
+    vars:
+      role_name: validate-zone-db
+      zone_files:
+        - /home/zuul/src/opendev.org/zuul/zuul-jobs/roles/validate-zone-db/files/test_zones
+
+- job:
+    name: zuul-jobs-test-validate-zone-db-debian-bookworm
+    description: Test the validate-zone-db role on debian-bookworm
+    parent: zuul-jobs-test-validate-zone-db
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: debian-bookworm
+          label: debian-bookworm
+
+- job:
+    name: zuul-jobs-test-validate-zone-db-debian-bullseye
+    description: Test the validate-zone-db role on debian-bullseye
+    parent: zuul-jobs-test-validate-zone-db
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: debian-bullseye
+          label: debian-bullseye
+
+- job:
+    name: zuul-jobs-test-validate-zone-db-ubuntu-bionic
+    description: Test the validate-zone-db role on ubuntu-bionic
+    parent: zuul-jobs-test-validate-zone-db
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: ubuntu-bionic
+          label: ubuntu-bionic
+
+- job:
+    name: zuul-jobs-test-validate-zone-db-ubuntu-focal
+    description: Test the validate-zone-db role on ubuntu-focal
+    parent: zuul-jobs-test-validate-zone-db
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: ubuntu-focal
+          label: ubuntu-focal
+
+- job:
+    name: zuul-jobs-test-validate-zone-db-ubuntu-jammy
+    description: Test the validate-zone-db role on ubuntu-jammy
+    parent: zuul-jobs-test-validate-zone-db
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: ubuntu-jammy
+          label: ubuntu-jammy
+
+- job:
+    name: zuul-jobs-test-dstat-graph
+    description: Test the dstat-graph roles
+    run: test-playbooks/dstat-graph.yaml
+    tags: all-platforms
+    files:
+      - ^roles/ensure-dstat-graph/.*
+      - ^roles/run-dstat/.*
+      - ^roles/dstat-graph/.*
+      - ^test-playbooks/dstat-graph.yaml
+
+- job:
+    name: zuul-jobs-test-dstat-graph-centos-8-stream
+    description: Test the dstat-graph roles on centos-8-stream
+    parent: zuul-jobs-test-dstat-graph
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: centos-8-stream
+          label: centos-8-stream
+
+- job:
+    name: zuul-jobs-test-dstat-graph-centos-9-stream
+    description: Test the dstat-graph roles on centos-9-stream
+    parent: zuul-jobs-test-dstat-graph
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: centos-9-stream
+          label: centos-9-stream
+
+- job:
+    name: zuul-jobs-test-dstat-graph-debian-bookworm
+    description: Test the dstat-graph roles on debian-bookworm
+    parent: zuul-jobs-test-dstat-graph
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: debian-bookworm
+          label: debian-bookworm
+
+- job:
+    name: zuul-jobs-test-dstat-graph-debian-bullseye
+    description: Test the dstat-graph roles on debian-bullseye
+    parent: zuul-jobs-test-dstat-graph
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: debian-bullseye
+          label: debian-bullseye
+
+- job:
+    name: zuul-jobs-test-dstat-graph-ubuntu-bionic
+    description: Test the dstat-graph roles on ubuntu-bionic
+    parent: zuul-jobs-test-dstat-graph
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: ubuntu-bionic
+          label: ubuntu-bionic
+
+- job:
+    name: zuul-jobs-test-dstat-graph-ubuntu-focal
+    description: Test the dstat-graph roles on ubuntu-focal
+    parent: zuul-jobs-test-dstat-graph
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: ubuntu-focal
+          label: ubuntu-focal
+
+- job:
+    name: zuul-jobs-test-dstat-graph-ubuntu-jammy
+    description: Test the dstat-graph roles on ubuntu-jammy
+    parent: zuul-jobs-test-dstat-graph
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: ubuntu-jammy
+          label: ubuntu-jammy
+
+- job:
+    name: zuul-jobs-test-multinode-roles
+    description: |
+      Tests multinode setup roles
+
+      These roles are tested together in this job because they
+      interact with each other.
+    tags: all-platforms multinode
+    abstract: true
+    run: test-playbooks/multinode/multinode.yaml
+    files:
+      - ^roles/multi-node-bridge/.*
+      - ^roles/multi-node-firewall/.*
+      - ^roles/multi-node-hosts-file/.*
+      - ^roles/multi-node-known-hosts/.*
+      - ^roles/persistent-firewall/.*
+      - ^test-playbooks/multinode/.*
+
+- job:
+    name: zuul-jobs-test-multinode-roles-centos-8-stream
+    description: Tests multinode setup roles on centos-8-stream
+    parent: zuul-jobs-test-multinode-roles
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: primary
+          label: centos-8-stream
+        - name: secondary
+          label: centos-8-stream
+      groups:
+        - name: switch
+          nodes:
+            - primary
+        - name: peers
+          nodes:
+            - secondary
+
+- job:
+    name: zuul-jobs-test-multinode-roles-centos-9-stream
+    description: Tests multinode setup roles on centos-9-stream
+    parent: zuul-jobs-test-multinode-roles
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: primary
+          label: centos-9-stream
+        - name: secondary
+          label: centos-9-stream
+      groups:
+        - name: switch
+          nodes:
+            - primary
+        - name: peers
+          nodes:
+            - secondary
+
+- job:
+    name: zuul-jobs-test-multinode-roles-debian-bookworm
+    description: Tests multinode setup roles on debian-bookworm
+    parent: zuul-jobs-test-multinode-roles
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: primary
+          label: debian-bookworm
+        - name: secondary
+          label: debian-bookworm
+      groups:
+        - name: switch
+          nodes:
+            - primary
+        - name: peers
+          nodes:
+            - secondary
+
+- job:
+    name: zuul-jobs-test-multinode-roles-debian-bullseye
+    description: Tests multinode setup roles on debian-bullseye
+    parent: zuul-jobs-test-multinode-roles
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: primary
+          label: debian-bullseye
+        - name: secondary
+          label: debian-bullseye
+      groups:
+        - name: switch
+          nodes:
+            - primary
+        - name: peers
+          nodes:
+            - secondary
+
+- job:
+    name: zuul-jobs-test-multinode-roles-ubuntu-bionic
+    description: Tests multinode setup roles on ubuntu-bionic
+    parent: zuul-jobs-test-multinode-roles
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: primary
+          label: ubuntu-bionic
+        - name: secondary
+          label: ubuntu-bionic
+      groups:
+        - name: switch
+          nodes:
+            - primary
+        - name: peers
+          nodes:
+            - secondary
+
+- job:
+    name: zuul-jobs-test-multinode-roles-ubuntu-focal
+    description: Tests multinode setup roles on ubuntu-focal
+    parent: zuul-jobs-test-multinode-roles
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: primary
+          label: ubuntu-focal
+        - name: secondary
+          label: ubuntu-focal
+      groups:
+        - name: switch
+          nodes:
+            - primary
+        - name: peers
+          nodes:
+            - secondary
+
+- job:
+    name: zuul-jobs-test-multinode-roles-ubuntu-jammy
+    description: Tests multinode setup roles on ubuntu-jammy
+    parent: zuul-jobs-test-multinode-roles
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: primary
+          label: ubuntu-jammy
+        - name: secondary
+          label: ubuntu-jammy
+      groups:
+        - name: switch
+          nodes:
+            - primary
+        - name: peers
+          nodes:
+            - secondary
+
+- job:
+    name: zuul-jobs-test-generate-zuul-manifest
+    description: Test the generate-zuul-manifest role
+    run: test-playbooks/generate-zuul-manifest.yaml
+    files:
+      - ^roles/generate-zuul-manifest/.*
+      - ^test-playbooks/generate-zuul-manifest.yaml
+
+- job:
+    name: zuul-jobs-test-upload-artifactory
+    description: Test the upload-artifactory role
+    files:
+      - roles/upload-artifactory/.*
+      - test-playbooks/artifactory/.*
+    run: test-playbooks/artifactory/run.yaml
+    cleanup-run: test-playbooks/artifactory/cleanup.yaml
+
+- job:
+    name: zuul-jobs-test-upload-git-mirror
+    description: Test the upload-git-mirror role
+    run: test-playbooks/upload-git-mirror.yaml
+    files:
+      - ^roles/upload-git-mirror/.*
+      - ^test-playbooks/upload-git-mirror.yaml
+
+- job:
+    name: zuul-jobs-test-shake-build
+    description: Test the shake build job and roles
+    parent: shake-build
+    files:
+      - playbooks/shake/.*
+      - roles/ensure-shake/.*
+      - roles/shake-build/.*
+      - test-playbooks/shake/.*
+    pre-run:
+      - test-playbooks/shake/setup-project.yaml
+    nodeset:
+      nodes:
+        - name: fedora-36
+          label: fedora-36
+
+- job:
+    name: zuul-jobs-test-ensure-zookeeper
+    description: Test the ensure-zookeeper roles
+    files:
+      - roles/ensure-zookeeper/.*
+      - test-playbooks/ensure-zookeeper.yaml
+    run: test-playbooks/ensure-zookeeper.yaml
+    tags: debuntu-platforms
+
+- job:
+    name: zuul-jobs-test-ensure-zookeeper-debian-bookworm
+    description: Test the ensure-zookeeper roles on debian-bookworm
+    parent: zuul-jobs-test-ensure-zookeeper
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: debian-bookworm
+          label: debian-bookworm
+
+- job:
+    name: zuul-jobs-test-ensure-zookeeper-debian-bullseye
+    description: Test the ensure-zookeeper roles on debian-bullseye
+    parent: zuul-jobs-test-ensure-zookeeper
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: debian-bullseye
+          label: debian-bullseye
+
+- job:
+    name: zuul-jobs-test-ensure-zookeeper-ubuntu-bionic
+    description: Test the ensure-zookeeper roles on ubuntu-bionic
+    parent: zuul-jobs-test-ensure-zookeeper
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: ubuntu-bionic
+          label: ubuntu-bionic
+
+- job:
+    name: zuul-jobs-test-ensure-zookeeper-ubuntu-focal
+    description: Test the ensure-zookeeper roles on ubuntu-focal
+    parent: zuul-jobs-test-ensure-zookeeper
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: ubuntu-focal
+          label: ubuntu-focal
+
+- job:
+    name: zuul-jobs-test-ensure-zookeeper-ubuntu-jammy
+    description: Test the ensure-zookeeper roles on ubuntu-jammy
+    parent: zuul-jobs-test-ensure-zookeeper
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: ubuntu-jammy
+          label: ubuntu-jammy
+
+- job:
+    name: zuul-jobs-test-update-json-file
+    description: Test the json edit role
+    run: test-playbooks/update-json-file.yaml
+    files:
+      - test-playbooks/update-json-file.yaml
+      - roles/update-json-file/.*
+
+- job:
+    name: zuul-jobs-test-stage-output
+    description: Test the state-output role
+    run: test-playbooks/stage-output.yaml
+    files:
+      - test-playbooks/stage-output.yaml
+      - roles/stage-output/.*
+
+- job:
+    name: zuul-jobs-test-fetch-translation-output
+    description: Test the fetch-translation-output
+    files:
+      - roles/ensure-output-dirs/.*
+      - roles/fetch-translation-output/.*
+      - roles/fetch-output/.*
+    run: test-playbooks/general/fetch-translation-output.yaml
+    vars:
+      zuul_use_fetch_output: true
+
+- job:
+    name: zuul-jobs-test-fetch-translation-output-synchronize
+    description: Test the fetch-translation-output
+    files:
+      - roles/fetch-translation-output/.*
+    run: test-playbooks/general/fetch-translation-output.yaml
+    vars:
+      zuul_use_fetch_output: false
+
+- job:
+    name: zuul-jobs-test-zuul-tenant-conf-check
+    description: Test the zuul-tenant-conf-check role
+    parent: zuul-tenant-conf-check
+    files:
+      - roles/zuul-tenant-conf-check/.*
+    vars:
+      zuul_tenant_conf_check_zuul_conf_path: '{{ zuul.executor.work_root }}/{{ zuul.project.src_dir
+        }}/test-playbooks/zuul-tenant-conf-check/zuul.conf'
+      zuul_tenant_conf_check_tenant_config_path: '{{ zuul.executor.work_root }}/{{
+        zuul.project.src_dir }}/test-playbooks/zuul-tenant-conf-check/main.yaml'
+
+# -* AUTOGENERATED *-
+#  The following project section is autogenerated by
+#    tox -e update-test-platforms
+#  Please re-run to generate new job lists
+
+- project:
+    check:
+      jobs: &id001
+        - zuul-jobs-test-add-authorized-keys
+        - zuul-jobs-test-add-gpgkey
+        - zuul-jobs-test-add-sshkey
+        - zuul-jobs-test-encrypt-file
+        - zuul-jobs-test-base-roles-centos-8-stream
+        - zuul-jobs-test-base-roles-centos-9-stream
+        - zuul-jobs-test-base-roles-debian-bookworm
+        - zuul-jobs-test-base-roles-debian-bullseye
+        - zuul-jobs-test-base-roles-ubuntu-bionic
+        - zuul-jobs-test-base-roles-ubuntu-focal
+        - zuul-jobs-test-base-roles-ubuntu-jammy
+        - zuul-jobs-test-bindep-centos-8-stream
+        - zuul-jobs-test-bindep-centos-9-stream
+        - zuul-jobs-test-bindep-debian-bookworm
+        - zuul-jobs-test-bindep-debian-bullseye
+        - zuul-jobs-test-bindep-ubuntu-bionic
+        - zuul-jobs-test-bindep-ubuntu-focal
+        - zuul-jobs-test-bindep-ubuntu-jammy
+        - zuul-jobs-test-clear-firewall
+        - zuul-jobs-test-enable-fips
+        - zuul-jobs-test-ensure-bazelisk
+        - zuul-jobs-test-netconsole
+        - zuul-jobs-test-validate-zone-db-debian-bookworm
+        - zuul-jobs-test-validate-zone-db-debian-bullseye
+        - zuul-jobs-test-validate-zone-db-ubuntu-bionic
+        - zuul-jobs-test-validate-zone-db-ubuntu-focal
+        - zuul-jobs-test-validate-zone-db-ubuntu-jammy
+        - zuul-jobs-test-dstat-graph-centos-8-stream
+        - zuul-jobs-test-dstat-graph-centos-9-stream
+        - zuul-jobs-test-dstat-graph-debian-bookworm
+        - zuul-jobs-test-dstat-graph-debian-bullseye
+        - zuul-jobs-test-dstat-graph-ubuntu-bionic
+        - zuul-jobs-test-dstat-graph-ubuntu-focal
+        - zuul-jobs-test-dstat-graph-ubuntu-jammy
+        - zuul-jobs-test-multinode-roles-centos-8-stream
+        - zuul-jobs-test-multinode-roles-centos-9-stream
+        - zuul-jobs-test-multinode-roles-debian-bookworm
+        - zuul-jobs-test-multinode-roles-debian-bullseye
+        - zuul-jobs-test-multinode-roles-ubuntu-bionic
+        - zuul-jobs-test-multinode-roles-ubuntu-focal
+        - zuul-jobs-test-multinode-roles-ubuntu-jammy
+        - zuul-jobs-test-generate-zuul-manifest
+        - zuul-jobs-test-upload-artifactory
+        - zuul-jobs-test-upload-git-mirror
+        - zuul-jobs-test-shake-build
+        - zuul-jobs-test-ensure-zookeeper-debian-bookworm
+        - zuul-jobs-test-ensure-zookeeper-debian-bullseye
+        - zuul-jobs-test-ensure-zookeeper-ubuntu-bionic
+        - zuul-jobs-test-ensure-zookeeper-ubuntu-focal
+        - zuul-jobs-test-ensure-zookeeper-ubuntu-jammy
+        - zuul-jobs-test-update-json-file
+        - zuul-jobs-test-stage-output
+        - zuul-jobs-test-fetch-translation-output
+        - zuul-jobs-test-fetch-translation-output-synchronize
+        - zuul-jobs-test-zuul-tenant-conf-check
+    gate:
+      jobs: *id001
+    periodic-weekly:
+      jobs: *id001

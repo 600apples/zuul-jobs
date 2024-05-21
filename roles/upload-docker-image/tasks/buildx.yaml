@@ -1,0 +1,41 @@
+- name: Set up siblings
+  include_tasks: siblings.yaml
+
+- name: Upload tag to dockerhub
+  vars:
+    promote_tag_prefix: "{{ ('change_' + zuul.change) if (zuul.change is defined) else zuul.pipeline }}_"
+  # docker buildx doesn't have a separate push command, only the
+  # ability to push at the end of a build. We run build here with
+  # all the same arguments as in the buildx build tasks, so they
+  # should result in a noop build and just a push.
+  command: >-
+    docker buildx build {{ zj_image.path | default('.') }} -f {{ zj_image.dockerfile | default(docker_dockerfile) }}
+    {% if zj_image.target | default(false) -%}
+      --target {{ zj_image.target }}
+    {% endif -%}
+    {% for build_arg in zj_image.build_args | default([]) -%}
+      --build-arg {{ build_arg }}
+    {% endfor -%}
+    {% if zj_image.siblings | default(false) -%}
+      --build-arg "ZUUL_SIBLINGS={{ zj_image.siblings | join(' ') }}"
+    {% endif -%}
+    {% for tag in zj_image.tags | default(['latest']) -%}
+      --tag {{ docker_registry | ternary(docker_registry + '/', '') }}{{ zj_image.repository }}:{{ upload_docker_image_promote | ternary(promote_tag_prefix, '') }}{{ tag }}
+    {% endfor -%}
+    {% for label in zj_image.labels | default([]) -%}
+      --label "{{ label }}"
+    {% endfor %}
+    {% if zuul.change | default(false) %}
+      --label "org.zuul-ci.change={{ zuul.change }}"
+    {% endif %}
+    --label "org.zuul-ci.change_url={{ zuul.change_url }}"
+    --platform={{ zj_image.arch | join(',') }}
+    --push
+  args:
+    chdir: "{{ zuul_work_dir }}/{{ zj_image.context }}"
+  environment:
+    DOCKER_CLI_EXPERIMENTAL: enabled
+  register: result
+  until: result.rc == 0
+  retries: 3
+  delay: 30

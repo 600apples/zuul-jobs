@@ -1,0 +1,6 @@
+ensure_pip_from_packages: True
+ensure_pip_from_packages_with_python2: '{{ (ansible_python.version.major == 2) | ternary(True, False) }}'
+ensure_pip_from_upstream_url: '{{ ansible_python_version is version("3.7", ">=") | ternary("https://bootstrap.pypa.io/get-pip.py", "https://bootstrap.pypa.io/pip/3.6/get-pip.py") }}'
+ensure_pip_from_upstream: False
+ensure_pip_from_upstream_interpreters:
+  - '{{ ansible_python.executable | regex_replace(".*python", "python") }}'

@@ -1,0 +1,4 @@
+_yarn_keys:
+  - url: https://dl.yarnpkg.com/debian/pubkey.gpg
+_yarn_repos:
+  - repo: deb https://dl.yarnpkg.com/debian/ stable main

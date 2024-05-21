@@ -1,0 +1,15 @@
+- job:
+    name: phoronix-test-suite
+    description: A system job to validate test resources
+    pre-run: playbooks/phoronix-test-suite/pre.yaml
+    run: playbooks/phoronix-test-suite/run.yaml
+    post-run: playbooks/phoronix-test-suite/post.yaml
+
+- job:
+    name: phoronix-combine-results
+    description: A system job to combine multiple results
+    vars:
+      phoronix_combined_result_name: "phoronix-combined-result"
+    pre-run: playbooks/phoronix-test-suite/pre.yaml
+    run: playbooks/phoronix-test-suite/combine.yaml
+    post-run: playbooks/phoronix-test-suite/post-combine.yaml

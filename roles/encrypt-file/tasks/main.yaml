@@ -1,0 +1,49 @@
+- name: Stat input file
+  stat:
+    path: '{{ zj_encrypt_file }}'
+  loop: '{{ [ encrypt_file ] if encrypt_file is string else encrypt_file }}'
+  loop_control:
+    loop_var: zj_encrypt_file
+  register: _stat_result
+
+- name: Validate input file
+  fail:
+    msg: '{{ zj_stat_result.stat.path }} : file does not exist'
+  when: not zj_stat_result.stat.exists
+  loop: '{{ _stat_result.results }}'
+  loop_control:
+    loop_var: zj_stat_result
+
+- name: Ensure gpg2 installed
+  package:
+    name: gnupg2
+    state: present
+  become: yes
+
+- name: Check for required keys
+  fail:
+    msg: 'Name {{ zj_recipient_name }} not in encrypt_file_keys'
+  when: zj_recipient_name not in encrypt_file_keys | map(attribute="name")
+  loop: '{{ encrypt_file_recipients }}'
+  loop_control:
+    loop_var: zj_recipient_name
+
+- name: Build recipient list
+  set_fact:
+    _recipients: '{{ encrypt_file_keys | selectattr("name", "in", encrypt_file_recipients) | list }}'
+
+- name: Install keys
+  include_tasks: import-key.yaml
+  loop: '{{ _recipients }}'
+  loop_control:
+    loop_var: zj_encrypt_file
+
+- name: Build recipient list
+  set_fact:
+    _recipients_cmd: '--recipient={{ _recipients | map(attribute="key_id") | join(" --recipient=") }}'
+
+- name: Encrypt file
+  command: 'gpg2 --encrypt --output {{ zj_encrypt_file }}.gpg {{ _recipients_cmd }} {{ zj_encrypt_file }}'
+  loop: '{{ [ encrypt_file ] if encrypt_file is string else encrypt_file }}'
+  loop_control:
+    loop_var: zj_encrypt_file

@@ -1,0 +1,38 @@
+- name: Create temp directory
+  tempfile:
+    state: directory
+  register: dhall_archive_tempdir
+
+- name: Check requested version
+  fail:
+    msg: |
+      Unknown dhall version: {{ dhall_version }}.
+      It needs to be defined in {{ opendev_url }}/roles/ensure-dhall/defaults/main.yaml
+  when: dhall_versions[dhall_version] is not defined
+  vars:
+    opendev_url: https://opendev.org/zuul/zuul-jobs/src/branch/master/
+
+- name: Download tools
+  get_url:
+    url: "{{ zj_dhall_tool_item.url }}"
+    dest: "{{ dhall_archive_tempdir.path }}/{{ zj_dhall_tool_item.url | basename }}"
+    checksum: "{{ zj_dhall_tool_item.checksum }}"
+  loop: "{{ dhall_versions[dhall_version] }}"
+  loop_control:
+    loop_var: zj_dhall_tool_item
+
+- name: Unpack tools
+  command: "tar -xf {{ dhall_archive_tempdir.path }}/{{ zj_dhall_tool_item.url | basename }} --strip-components=2 -j --mode='a+x' -C /usr/local/bin"
+  become: yes
+  # ANSIBLE0006: Skip linting since it triggers on the "tar" command,
+  # but we prefer the command above
+  tags:
+    - skip_ansible_lint
+  loop: "{{ dhall_versions[dhall_version] }}"
+  loop_control:
+    loop_var: zj_dhall_tool_item
+
+- name: Remove temp directory
+  file:
+    state: absent
+    path: '{{ dhall_archive_tempdir.path }}'

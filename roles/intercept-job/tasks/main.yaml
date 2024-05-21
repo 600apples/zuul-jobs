@@ -1,0 +1,8 @@
+- name: Check for intercept SSH key
+  stat:
+    path: "{{ intercept_job_pub_key_path }}"
+  register: intercept_key_stat
+
+- name: Wait
+  when: intercept_key_stat.stat.exists
+  include_tasks: wait.yaml

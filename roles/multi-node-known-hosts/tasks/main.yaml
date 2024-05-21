@@ -1,0 +1,13 @@
+- name: Get known_hosts facts
+  generate_all_known_hosts:
+    hostvars: "{{ hostvars }}"
+
+- name: Add default known_host record for every user
+  become: true
+  known_hosts:
+    name: "{{ zj_known_host.name }}"
+    key: "{{ zj_known_host.key }}"
+    path: /etc/ssh/ssh_known_hosts
+  with_items: "{{ ansible_facts.all_known_hosts }}"
+  loop_control:
+    loop_var: zj_known_host

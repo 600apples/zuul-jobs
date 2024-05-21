@@ -1,0 +1,40 @@
+- hosts: all
+  tasks:
+    - name: Create workspace
+      include_role:
+        name: terraform
+      vars:
+        zuul_work_dir: '{{ zuul.project.src_dir }}/test-playbooks/terraform'
+        terraform_command: plan
+        terraform_create_workspace: true
+
+    - name: Make sure workspace was created
+      command: "{{ terraform_executable }} workspace select -no-color {{ terraform_workspace }}"
+      args:
+        chdir: "{{ zuul.project.src_dir }}/test-playbooks/terraform"
+
+    - name: Select default workspace
+      command: "{{ terraform_executable }} workspace select default"
+      args:
+        chdir: "{{ zuul.project.src_dir }}/test-playbooks/terraform"
+
+    - name: Use created workspace
+      include_role:
+        name: terraform
+      vars:
+        terraform_command: apply
+
+    - name: Delete workspace
+      include_role:
+        name: terraform
+      vars:
+        zuul_work_dir: '{{ zuul.project.src_dir }}/test-playbooks/terraform'
+        terraform_command: destroy
+        terraform_purge_workspace: true
+
+    - name: Make sure workspace was removed
+      register: terraform_workspace_stat
+      failed_when: terraform_workspace_stat.rc == 0
+      command: "{{ terraform_executable }} workspace select -no-color {{ terraform_workspace }}"
+      args:
+        chdir: "{{ zuul.project.src_dir }}/test-playbooks/terraform"

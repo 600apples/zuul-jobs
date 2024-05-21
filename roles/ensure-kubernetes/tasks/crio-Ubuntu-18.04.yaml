@@ -1,0 +1,42 @@
+- name: Add project atomic PPA
+  apt_repository:
+    repo: ppa:projectatomic/ppa
+  become: true
+- name: Install packages
+  package:
+    name:
+      - cri-o-1.15
+      - containernetworking-plugins
+      - podman
+      - cri-tools
+    state: present
+  become: true
+- name: Fix conmon symlink
+  file:
+    src: /usr/bin/conmon
+    dest: /usr/libexec/crio/conmon
+    owner: root
+    group: root
+    state: link
+  become: true
+- name: Fix missing registries.conf
+  # See: https://github.com/containers/podman.io/issues/127
+  copy:
+    content: |
+      [registries.search]
+      registries = []
+      [registries.insecure]
+      registries = []
+      [registries.block]
+      registries = []
+    dest: /etc/containers/registries.conf
+    mode: 0644
+  become: true
+- name: Set crio cgroup driver
+  ini_file:
+    path: /etc/crio/crio.conf
+    section: crio.runtime
+    option: cgroup_manager
+    value: '"cgroupfs"'
+    mode: 0644
+  become: true

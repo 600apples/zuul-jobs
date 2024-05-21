@@ -1,0 +1,11 @@
+---
+workdir: src/opendev.org/vexxhost/openstack-operator
+output: |
+  builders/pod_metrics_endpoint.go:27:2: SA1019: pme.obj.TargetPort is deprecated: Use 'port' instead.  (staticcheck)
+  	pme.obj.TargetPort = &targetPort
+  	^
+
+comments:
+  builders/pod_metrics_endpoint.go:
+    - line: 27
+      message: "SA1019: pme.obj.TargetPort is deprecated: Use 'port' instead.  (staticcheck)"

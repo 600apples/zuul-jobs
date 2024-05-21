@@ -1,0 +1,31 @@
+# Jobs listed in docker-jobs.rst.
+
+- job:
+    name: build-docker-image
+    description: |
+      Build a docker image.
+
+      .. include:: ../../playbooks/docker-image/README.rst
+    pre-run: playbooks/docker-image/pre.yaml
+    run: playbooks/docker-image/run.yaml
+
+- job:
+    name: upload-docker-image
+    parent: build-docker-image
+    description: |
+      Build and upload a docker image.
+
+      .. include:: ../../playbooks/docker-image/README.rst
+      .. include:: ../../playbooks/docker-image/credentials.rst
+    post-run: playbooks/docker-image/upload.yaml
+
+- job:
+    name: promote-docker-image
+    description: |
+      Retag a previously-uploaded docker image.
+
+      .. include:: ../../playbooks/docker-image/README.rst
+      .. include:: ../../playbooks/docker-image/credentials.rst
+    run: playbooks/docker-image/promote.yaml
+    nodeset:
+      nodes: []

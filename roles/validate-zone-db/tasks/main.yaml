@@ -1,0 +1,22 @@
+- name: Install bind9utils
+  package:
+    name: bind9utils
+    state: present
+  become: yes
+
+- name: Build zone.db list
+  include_tasks: find.yaml
+  when: not zone_db_files
+
+- name: 'Run checkzone'
+  # Use shell so that $PATH can be used to lookup the executable path.
+  # Jammy installs to /usr/bin but older releases install to /usr/sbin.
+  shell: |
+    # Explicitly add /usr/sbin to path in case it isnt already there.
+    export PATH=$PATH:/usr/sbin
+    named-checkzone {{ zj_zone_db_file[0] }} {{ zj_zone_db_file[1] }}
+  loop: "{{ zone_db_files }}"
+  loop_control:
+    loop_var: zj_zone_db_file
+  tags:
+    - skip_ansible_lint

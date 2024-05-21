@@ -1,0 +1,92 @@
+- name: Set tox log path for multiple nodes
+  set_fact:
+    log_path: "{{ zuul.executor.log_root }}/{{ inventory_hostname }}/tox"
+  when: groups['all'] | length > 1
+
+- name: Set tox log path for single node
+  set_fact:
+    log_path: "{{ zuul.executor.log_root }}/tox"
+  when: log_path is not defined
+
+- name: Ensure local tox dir
+  file:
+    path: "{{ log_path }}"
+    state: directory
+    mode: 0755
+  delegate_to: localhost
+
+- name: Ensure zuul-output tox dir
+  file:
+    path: "{{ zuul_output_dir }}/logs/tox"
+    state: directory
+    mode: 0755
+  when: zuul_use_fetch_output
+
+- name: Set envlist fact
+  set_fact:
+    envlist: "{{ tox_envlist.split(',') }}"
+  when: tox_envlist is defined and tox_envlist != 'ALL' and tox_envlist
+# tox version <= 3.13.2 throws an exception if
+# tox -l is run and envlist is not set so set
+# failed_when: false for any version below that
+- name: Get tox version
+  command: "{{ tox_executable }} --version"
+  register: tox_version_output
+
+- name: Find all default environments
+  command: "{{ tox_executable }} -l"
+  failed_when: "{{ tox_default_environments is failed and tox_version_output.stdout | regex_search('\\d+\\.\\d+\\.\\d+') is version('3.13.2', '>') }}"
+
+  args:
+    chdir: "{{ zuul_work_dir }}"
+  register: tox_default_environments
+  when: tox_envlist is not defined or
+        not tox_envlist
+
+- name: Set envlist fact
+  set_fact:
+    envlist: "{{ tox_default_environments.stdout_lines }}"
+  when: tox_default_environments.stdout_lines is defined
+
+- name: Find all default environments
+  command: "{{ tox_executable }} -a"
+  args:
+    chdir: "{{ zuul_work_dir }}"
+  register: tox_all_environments
+  when:
+    - (tox_envlist is defined and tox_envlist == 'ALL') or
+      (envlist is defined and not envlist)
+
+- name: Set envlist fact
+  set_fact:
+    envlist: "{{ tox_all_environments.stdout_lines }}"
+  when: tox_all_environments.stdout_lines is defined
+
+- name: Copy tox logs  # noqa risky-file-permissions
+  copy:
+    dest: "{{ zuul_output_dir }}/logs/tox/{{ zj_testenv }}/"
+    src: "{{ zuul_work_dir }}/.tox/{{ zj_testenv }}/log/"
+    remote_src: true
+  loop: "{{ envlist }}"
+  loop_control:
+    loop_var: zj_testenv
+  # some tox runs may not create a virtualenv and thus have
+  # no ./tox/env directory
+  failed_when: false
+  when: zuul_use_fetch_output
+
+- name: Collect tox logs
+  synchronize:
+    dest: "{{ log_path }}/{{ zj_testenv }}"
+    mode: pull
+    src: "{{ zuul_work_dir }}/.tox/{{ zj_testenv }}/log/"
+    verify_host: true
+    owner: no
+    group: no
+  loop: "{{ envlist }}"
+  loop_control:
+    loop_var: zj_testenv
+  # some tox runs may not create a virtualenv and thus have
+  # no ./tox/env directory
+  failed_when: false
+  when: not zuul_use_fetch_output

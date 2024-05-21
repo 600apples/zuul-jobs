@@ -1,0 +1,5 @@
+---
+# NOTE(mnaser): We are pinning to 1.23.8 due to the fact that at the time of
+#               writing this role, 1.24.0 has memory issues
+#               https://github.com/golangci/golangci-lint/issues/994
+golangci_lint_version: 1.23.8

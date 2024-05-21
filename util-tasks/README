@@ -1,0 +1,3 @@
+This directory holds task lists for use internally by multiple roles.
+They are not meant to be consumed outside of zuul-jobs, and do not
+provide a stable API.

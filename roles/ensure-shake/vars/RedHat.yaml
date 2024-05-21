@@ -1,0 +1,3 @@
+shake_packages:
+  - shake
+  - ghc-shake-devel

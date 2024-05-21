@@ -1,0 +1,23 @@
+- hosts: all
+  tasks:
+    - name: Setup files
+      copy:
+        content: "{{ item.content }}"
+        dest: "{{ zuul.project.src_dir }}/{{ item.dest }}"
+      loop:
+        - content: "all:\n\tdhall-to-yaml < test.dhall > test.yaml"
+          dest: Makefile
+        - content: "21 + 21"
+          dest: test.dhall
+        - content: "42\n"
+          dest: test.yaml
+
+    - name: Commit changes
+      shell: |
+        if ! test -f ~/.gitconfig && ! test -d ~/.config/git ; then
+          git config --global user.email "you@example.com"
+          git config --global user.name "Your Name"
+        fi
+        git add Makefile test.dhall test.yaml && git commit -m "test content"
+      args:
+        chdir: "{{ zuul.project.src_dir }}"

@@ -1,0 +1,25 @@
+- hosts: all
+  tasks:
+    - name: Check for tools
+      command: type make git bzip2
+      failed_when: false
+      register: _tools
+
+    - name: Install tools
+      package:
+        name:
+          - git
+          - bzip2
+          - make
+      become: true
+      when: _tools.rc != 0
+
+    - name: Check for dhall command
+      command: type -p dhall-to-json
+      failed_when: false
+      register: _dhall_tools
+
+    - name: Install dhall
+      include_role:
+        name: ensure-dhall
+      when: _dhall_tools.rc != 0

@@ -1,0 +1,21 @@
+- name: Query Zuul API for artifact information
+  uri:
+    url: "{{ download_artifact_api }}/builds?{{ download_artifact_query }}"
+  register: build
+- name: Parse build response
+  set_fact:
+    build: "{{ build.json[0] }}"
+- name: Download archive by type
+  uri:
+    url: "{{ zj_artifact.url }}"
+    dest: "{{ download_artifact_directory }}"
+  loop: "{{ build.artifacts }}"
+  loop_control:
+    loop_var: zj_artifact
+  when:
+    - "'metadata' in zj_artifact"
+    - "'type' in zj_artifact.metadata"
+    - >
+      zj_artifact.metadata.type == download_artifact_type or
+       ((download_artifact_type | type_debug) == 'list'
+         and zj_artifact.metadata.type in download_artifact_type)

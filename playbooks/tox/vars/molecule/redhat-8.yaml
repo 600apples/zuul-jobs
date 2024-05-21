@@ -1,0 +1,6 @@
+---
+
+_tox_molecule_packages:
+  - python3-devel
+  - python3-libselinux
+  - gcc

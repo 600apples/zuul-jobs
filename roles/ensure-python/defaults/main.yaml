@@ -1,0 +1,3 @@
+python_use_pyenv: false
+python_use_stow: false
+python_stow_dir: /usr/local/stow

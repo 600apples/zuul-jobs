@@ -1,0 +1,3 @@
+# The tests override this variable, which is why we don't use
+# zuul.artifacts directly.
+zuul_artifacts: "{{ zuul.artifacts | default([]) }}"

@@ -1,0 +1,21 @@
+- name: Create temp dir for bindep
+  tempfile:
+    state: directory
+    prefix: bindep
+  register: bindep_temp_dir
+  notify:
+    - Remove bindep temp dir
+
+- name: Ensure we have pip dependencies
+  include_role:
+    name: ensure-pip
+
+- name: Install bindep into temporary venv
+  pip:
+    name: bindep
+    virtualenv_command: '{{ ensure_pip_virtualenv_command }}'
+    virtualenv: '{{ bindep_temp_dir.path }}/venv'
+
+- name: Define bindep_command
+  set_fact:
+    bindep_command: "{{ bindep_temp_dir.path }}/venv/bin/bindep"

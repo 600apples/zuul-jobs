@@ -1,0 +1,19 @@
+---
+- name: Fetch zuul-output from the pod
+  command: >
+    oc --context "{{ zj_pod.1.context }}"
+       --namespace "{{ zj_pod.1.namespace }}"
+        rsync -q --progress=false
+          {{ zj_pod.1.pod }}:{{ zj_output.src }}/
+          {{ zj_output.dst }}/
+  no_log: "{{ not zuul_log_verbose }}"
+  delegate_to: localhost
+  loop:
+    - src: "{{ zuul_output_dir }}/logs"
+      dst: "{{ log_path }}"
+    - src: "{{ zuul_output_dir }}/artifacts"
+      dst: "{{ zuul.executor.work_root }}/artifacts"
+    - src: "{{ zuul_output_dir }}/docs"
+      dst: "{{ zuul.executor.work_root }}/docs"
+  loop_control:
+    loop_var: zj_output

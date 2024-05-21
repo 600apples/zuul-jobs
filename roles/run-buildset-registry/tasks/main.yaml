@@ -1,0 +1,77 @@
+- name: Install packages
+  become: yes
+  package:
+    name:
+      - openssl
+      - socat
+    state: present
+
+- name: Ensure registry volume directories exists
+  file:
+    state: directory
+    path: "{{ buildset_registry_root }}/{{ zj_dir }}"
+    mode: 0755
+  loop:
+    - tls
+    - conf
+  loop_control:
+    loop_var: zj_dir
+
+- name: Generate registry secrets
+  set_fact:
+    registry_password: "{{ lookup('password', '/dev/null') }}"
+    registry_secret: "{{ lookup('password', '/dev/null') }}"
+  no_log: true
+
+- name: Write registry config
+  template:
+    src: registry.yaml.j2
+    dest: "{{ buildset_registry_root }}/conf/registry.yaml"
+    mode: 0600
+
+- name: Generate a TLS key for the registry
+  command: "openssl req -x509 -newkey rsa:2048 -keyout {{ buildset_registry_root }}/tls/cert.key -out {{ buildset_registry_root }}/tls/cert.pem -days 365 -nodes -subj '/C=US/ST=California/L=Oakland/O=Company Name/OU=Org/CN={{ ansible_host }}' -addext 'subjectAltName = DNS:zuul-jobs.buildset-registry,DNS:{{ ansible_host }},IP:{{ ansible_host }},IP:127.0.0.1'"
+
+- name: Read TLS certificate
+  slurp:
+    src: "{{ buildset_registry_root }}/tls/cert.pem"
+  register: certificate
+
+- name: Decode TLS certificate
+  set_fact:
+    certificate: "{{ certificate.content | b64decode }}"
+
+- name: Start the buildset registry
+  command: >-
+    {{ container_command }} run -d
+    --name="{{ (buildset_registry_port == 5000) | ternary('buildset_registry', 'buildset_registry_' + buildset_registry_port|string) }}"
+    --restart=always
+    --publish="1{{ buildset_registry_port }}:5000"
+    --volume="{{ buildset_registry_root }}/tls:/tls"
+    --volume="{{ buildset_registry_root }}/conf:/conf"
+    docker.io/zuul/zuul-registry:latest zuul-registry -d
+
+# Start a socat tunnel to the buildset registry to work around
+# https://github.com/containers/libpod/issues/4311
+# in case we're using podman.
+- name: Start socat to work around https://github.com/containers/libpod/issues/4311
+  shell: "setsid socat -d -d TCP6-LISTEN:{{ buildset_registry_port }},fork TCP:127.0.0.1:1{{ buildset_registry_port }} 2> {{ buildset_registry_root }}/socat_port &"
+
+- name: Set registry information fact
+  set_fact:
+    buildset_registry:
+      host: "{{ ansible_host }}"
+      port: "{{ buildset_registry_port }}"
+      username: zuul
+      password: "{{ registry_password }}"
+      cert: "{{ certificate }}"
+  no_log: true
+
+- name: Return registry information to Zuul
+  zuul_return:
+    secret_data:
+      buildset_registry: "{{ buildset_registry }}"
+  # This isn't strictly necessary with the current implemenation of
+  # zuul_return but we set no_log: true in case the verbosity
+  # changes.
+  no_log: true

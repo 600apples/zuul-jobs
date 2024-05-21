@@ -1,0 +1,32 @@
+- name: Verify repository names
+  when: |
+    docker_credentials.repository is defined
+    and not zj_image.repository | regex_search(docker_credentials.repository)
+  loop: "{{ docker_images }}"
+  loop_control:
+    loop_var: zj_image
+  fail:
+    msg: "{{ zj_image.repository }} not permitted by {{ docker_credentials.repository }}"
+# This is used by the delete tasks
+- name: Get dockerhub JWT token
+  no_log: true
+  uri:
+    url: "https://hub.docker.com/v2/users/login/"
+    body_format: json
+    body:
+      username: "{{ docker_credentials.username }}"
+      password: "{{ docker_credentials.password }}"
+  register: jwt_token
+  delay: 5
+  retries: 3
+  until: jwt_token and jwt_token.status==200
+- name: Promote image
+  loop: "{{ docker_images }}"
+  loop_control:
+    loop_var: zj_image
+  include_tasks: promote-retag.yaml
+- name: Delete obsolete tags
+  loop: "{{ docker_images }}"
+  loop_control:
+    loop_var: zj_image
+  include_tasks: promote-cleanup.yaml

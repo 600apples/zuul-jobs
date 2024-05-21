@@ -1,0 +1,12 @@
+python_build_depends:
+  - aria2
+  - gcc
+  - libbz2-devel
+  - libffi-devel
+  - make
+  - openssl-devel
+  - readline-devel
+  - sqlite3-devel
+  - tar
+  - zlib-devel
+  - patch

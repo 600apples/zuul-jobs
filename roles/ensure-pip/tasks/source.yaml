@@ -1,0 +1,29 @@
+- name: Temporary install directory
+  tempfile:
+    state: directory
+    suffix: ensure-pip
+  register: _install_dir
+
+- name: Download pip
+  get_url:
+    url: '{{ ensure_pip_from_upstream_url }}'
+    dest: '{{ _install_dir.path }}/get-pip.py'
+
+- name: 'Run get-pip.py for {{ zj_item }}'
+  command: '{{ zj_item }} {{ _install_dir.path }}/get-pip.py'
+  become: yes
+  loop: '{{ ensure_pip_from_upstream_interpreters }}'
+  loop_control:
+    loop_var: zj_item
+
+- name: 'Install wheel'
+  command: '{{ zj_item }} -m pip install wheel'
+  become: yes
+  loop: '{{ ensure_pip_from_upstream_interpreters }}'
+  loop_control:
+    loop_var: zj_item
+
+- name: Remove temporary install dir
+  file:
+    state: absent
+    path: '{{ _install_dir.path }}'

@@ -1,0 +1,11 @@
+{
+  "variables": {
+      "packer_test_file": "{{env `PACKER_TEST_FILE`}}"
+  },
+  "builders": [{
+      "type": "file",
+      "content": "{{user `packer_test_content`}}",
+      "target": "{{user `packer_test_file` }}"
+  }]
+}
+

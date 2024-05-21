@@ -1,0 +1,38 @@
+- name: Install NodeJS
+  include_role:
+    name: ensure-nodejs
+
+- name: Gather variables for each operating system
+  include_vars: "{{ zj_item }}"
+  with_first_found:
+    - skip: true
+      files:
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_version | lower }}.yaml"
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version | lower }}.yaml"
+        - "{{ ansible_os_family | lower }}-{{ ansible_distribution_major_version | lower }}.yaml"
+        - "{{ ansible_distribution | lower }}.yaml"
+        - "{{ ansible_os_family | lower }}-{{ ansible_distribution_version.split('.')[0] }}.yaml"
+        - "{{ ansible_os_family | lower }}.yaml"
+  loop_control:
+    loop_var: zj_item
+  tags:
+    - always
+
+- name: Add all repositories
+  include_role:
+    name: ensure-package-repositories
+  vars:
+    repositories_keys: "{{ _yarn_keys | default([]) }}"
+    repositories_list: "{{ _yarn_repos | default([]) }}"
+
+- name: Install yarn from yarnpkg.com
+  package:
+    name: yarn
+    state: latest
+  become: yes
+  tags:
+    # Ignore ANSIBLE0010: We really want latest version
+    - skip_ansible_lint
+
+- name: Output yarn version
+  command: yarn --version

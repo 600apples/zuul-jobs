@@ -1,0 +1,32 @@
+- name: Create GPG private key tempfile
+  tempfile:
+    state: file
+  register: gpg_private_key_tmp
+
+- name: Stage GPG private key for importing
+  copy:
+    content: "{{ gpg_key.private }}"
+    dest: "{{ gpg_private_key_tmp.path }}"
+    mode: 0400
+
+- name: Import GPG private key
+  command: "gpg --import {{ gpg_private_key_tmp.path }}"
+
+- name: Trust the imported key
+  # Strip all whitespace and take the second line of output, which
+  # is the fingerprint, then import this at "I trust fully" level.
+  # This was a pain to figure out as gpg really wants to communicate
+  # with a tty if you do something obvious like "gpg --edit-key <id>
+  # ...".  And what is menu option number "5" is actually "6" in the
+  # ownertrust db (ultimate trust)!
+  shell: |
+    set -o pipefail
+    echo $(gpg --show-keys {{ gpg_private_key_tmp.path }} \
+      | sed -n  "s/ //g;2 p"):6: | gpg --import-ownertrust
+  args:
+    executable: '/bin/bash'
+
+- name: Delete staged GPG private key
+  file:
+    path: "{{ gpg_private_key_tmp.path }}"
+    state: absent

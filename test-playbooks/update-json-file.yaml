@@ -1,0 +1,43 @@
+- hosts: all
+  tasks:
+
+    - name: Run update-json-file
+      include_role:
+        name: update-json-file
+      vars:
+        update_json_file_name: some/test.json
+        update_json_file_default:
+          foo: bar
+        update_json_file_combine:
+          moo: boo
+        update_json_file_debug: true
+
+    - name: Run update-json-file again
+      include_role:
+        name: update-json-file
+      vars:
+        update_json_file_name: some/test.json
+        update_json_file_combine:
+          new: content
+          a:
+            - list
+            - of
+            - items
+        update_json_file_debug: true
+
+    - name: Load resulting merged file
+      slurp:
+        path: 'some/test.json'
+      register: _file
+
+    - name: Parse merged file
+      set_fact:
+        _config: "{{ _file.content | b64decode | from_json }}"
+
+    - name: Check output
+      assert:
+        that:
+          - _config['foo'] == 'bar'
+          - _config['moo'] == 'boo'
+          - _config['new'] == 'content'
+          - _config['a'] == ['list', 'of', 'items']

@@ -1,0 +1,65 @@
+- name: Include operating system specific vars
+  include_vars: "{{ zj_distro_os }}"
+  with_first_found:
+    - "{{ ansible_distribution }}.yaml"
+    - "{{ ansible_os_family }}.yaml"
+    - "default.yaml"
+  loop_control:
+    loop_var: zj_distro_os
+
+- name: 'Ensure {{ iptables_package }}'
+  become: true
+  package:
+    name: "{{ iptables_package }}"
+
+- name: Set up the host ip addresses
+  set_fact:
+    ipv4_addresses: >
+      {% set hosts = [] -%}
+      {% for host, vars in hostvars.items() -%}
+      {% if vars['nodepool']['private_ipv4'] -%}
+        {% set _ = hosts.append(vars['nodepool']['private_ipv4']) -%}
+      {% endif -%}
+      {% if vars['nodepool']['public_ipv4'] -%}
+        {% set _ = hosts.append(vars['nodepool']['public_ipv4']) -%}
+      {% endif -%}
+      {% endfor -%}
+      {{- hosts | sort | unique -}}
+    ipv6_addresses: >
+      {% set hosts = [] -%}
+      {% for host, vars in hostvars.items() -%}
+      {% if vars['nodepool']['public_ipv6'] -%}
+        {% set _ = hosts.append(vars['nodepool']['public_ipv6']) -%}
+      {% endif -%}
+      {% endfor -%}
+      {{- hosts | sort | unique -}}
+
+- name: Set up ipv4 iptables rules
+  become: yes
+  iptables:
+    state: present
+    action: insert
+    chain: INPUT
+    ip_version: ipv4
+    source: "{{ zj_ipv4 }}"
+    jump: ACCEPT
+  with_items: "{{ ipv4_addresses }}"
+  loop_control:
+    loop_var: zj_ipv4
+
+- name: Set up ipv6 iptables rules
+  become: yes
+  iptables:
+    state: present
+    action: insert
+    chain: INPUT
+    ip_version: ipv6
+    source: "{{ zj_ipv6 }}"
+    jump: ACCEPT
+  with_items: "{{ ipv6_addresses }}"
+  loop_control:
+    loop_var: zj_ipv6
+
+- name: Persist iptables rules
+  include_role:
+    name: persistent-firewall

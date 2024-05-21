@@ -1,0 +1,5 @@
+# {{ ansible_managed }}
+deb {{ package_mirror }} {{ ansible_distribution_release }}-updates main
+{% if enable_deb_src_repos | bool -%}
+deb-src {{ package_mirror }} {{ ansible_distribution_release }}-updates main
+{% endif -%}

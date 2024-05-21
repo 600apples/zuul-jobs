@@ -1,0 +1,24 @@
+- name: Check for yarn.lock
+  when: js_build_tool is not defined
+  stat:
+    path: "{{ zuul_work_dir }}/yarn.lock"
+    get_checksum: false
+    get_mime: false
+    get_md5: false
+  register: yarn_lock_exists
+
+- name: Set js_build_tool fact
+  set_fact:
+    js_build_tool: '{{ yarn_lock_exists.stat.exists | ternary("yarn", "npm") }}'
+    cacheable: true
+  when: js_build_tool is not defined
+
+- name: Ensure yarn if needed
+  include_role:
+    name: ensure-yarn
+  when: js_build_tool == 'yarn'
+
+- name: Ensure nodejs if needed
+  include_role:
+    name: ensure-nodejs
+  when: js_build_tool == 'npm'

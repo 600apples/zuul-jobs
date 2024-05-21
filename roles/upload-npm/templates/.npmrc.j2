@@ -1,0 +1,13 @@
+init.author.name={{ npm_credentials.author_name }}
+init.author.email={{ npm_credentials.author_email }}
+init.author.url={{ npm_credentials.author_url }}
+tag-version-prefix=
+sign-git-tag=true
+
+{% if npm_credentials.username is defined %}
+//registry.npmjs.org/:username={{ npm_credentials.username }}
+//registry.npmjs.org/:_password={{ npm_credentials.password }}
+{% else %}
+//registry.npmjs.org/:_authToken={{ npm_credentials.authToken }}
+{% endif %}
+//registry.npmjs.org/:email={{ npm_credentials.author_email }}

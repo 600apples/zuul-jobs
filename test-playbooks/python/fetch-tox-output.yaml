@@ -1,0 +1,76 @@
+- hosts: all
+  pre_tasks:
+    # Run ensure-output-dirs now as it is not performed speculatively
+    - name: Run ensure-output-dirs
+      import_role:
+        name: ensure-output-dirs
+
+    - name: Simplify tox config
+      copy:
+        content: "{{ item.content }}"
+        dest: "{{ zuul.project.src_dir }}/{{ item.dest }}"
+      with_items:
+        - content: |
+            [tox]
+            envlist = venv
+
+            [testenv]
+            sitepackages = True
+            usedevelop = True
+
+            [testenv:venv]
+            commands = python -c 'exit(0)'
+          dest: tox.ini
+        - content: |
+            import setuptools
+            setuptools.setup(py_modules=[])
+          dest: setup.py
+        - content: ""
+          dest: setup.cfg
+
+    - name: Generate tox results
+      include_role:
+        name: "{{ item }}"
+      with_items:
+        - ensure-tox
+        - ensure-python
+        - tox
+
+  tasks:
+    - name: Run fetch-tox-output
+      import_role:
+        name: fetch-tox-output
+      vars:
+        tox_envlist: "ALL"
+
+    - name: Fetch the output
+      block:
+        - name: Undo the log_path fact set by fetch-javascript-output
+          set_fact:
+            log_path: "{{ zuul.executor.log_root }}/{{ inventory_hostname }}"
+          when: groups['all'] | length > 1
+
+        - name: Undo the log_path fact set log path for single node
+          set_fact:
+            log_path: "{{ zuul.executor.log_root }}"
+          when: groups['all'] | length == 1
+
+        - name: Run fetch-output
+          import_role:
+            name: fetch-output
+      when: zuul_use_fetch_output
+
+  post_tasks:
+    - name: Check for artifact on the test instance
+      stat:
+        path: "{{ ansible_user_dir }}/zuul-output/logs/tox/venv/1-install_package.log"
+      register: _test_artifact
+      failed_when: not _test_artifact.stat.exists
+      when: zuul_use_fetch_output
+
+    - name: Check for artifact on the executor
+      stat:
+        path: "{{ zuul.executor.log_root }}/tox/venv/1-install_package.log"
+      delegate_to: localhost
+      register: _executor_artifact
+      failed_when: not _executor_artifact.stat.exists

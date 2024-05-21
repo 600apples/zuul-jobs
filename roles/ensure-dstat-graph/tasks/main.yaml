@@ -1,0 +1,13 @@
+- name: Check for cached dstat_graph
+  stat:
+    path: "{{ dstat_graph_cache_path }}"
+  register: dstat_cache
+
+- name: Clone dstat_graph
+  when: >
+      not dstat_cache.stat.exists or
+      dstat_graph_cache_ignore
+  git:
+    repo: https://opendev.org/opendev/dstat_graph
+    dest: "{{ dstat_graph_download_path }}"
+    version: master

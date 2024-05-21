@@ -1,0 +1,4 @@
+- name: Get markdownlint report
+  hosts: all
+  roles:
+    - fetch-markdownlint

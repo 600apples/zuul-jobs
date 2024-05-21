@@ -1,0 +1,32 @@
+- name: Make sure the role is run on supported distro
+  fail:
+    msg: |
+      This role supports Fedora only,
+      Add your distro package to: {{ opendev_url }}/roles/ensure-shake/vars/
+  when: "ansible_distribution != 'Fedora'"
+  vars:
+    opendev_url: https://opendev.org/zuul/zuul-jobs/src/branch/master/
+
+- name: Check shake version
+  command: shake --version
+  failed_when: false
+  register: _shake_version
+
+- name: Install shake
+  when: "_shake_version.rc != 0"
+  block:
+    - name: Include OS-specific variables
+      include_vars: "{{ zj_distro_os }}"
+      loop_control:
+        loop_var: zj_distro_os
+      with_first_found:
+        - "{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yaml"
+        - "{{ ansible_distribution }}.{{ ansible_architecture }}.yaml"
+        - "{{ ansible_distribution }}.yaml"
+        - "{{ ansible_os_family }}.yaml"
+
+    - name: Install shake
+      package:
+        name: "{{ shake_packages }}"
+        state: present
+      become: yes

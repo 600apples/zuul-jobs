@@ -1,0 +1,47 @@
+- hosts: all
+  tasks:
+
+    - name: Run ensure-rust
+      include_role:
+        name: ensure-rust
+
+    - name: Test cargo run
+      shell: |
+        cargo new foo
+
+    - name: Copy hello world
+      copy:
+        src: hello.rs
+        dest: hello.rs
+        mode: 0644
+
+    - name: Compile hello world
+      command: rustc hello.rs
+
+    - name: Run hello world
+      command: ./hello
+
+    - name: Test pyca/cryptography build
+      when: ansible_distribution == 'Ubuntu'
+      block:
+
+        - name: Ensure pip
+          include_role:
+            name: ensure-pip
+
+        - name: Install deps
+          package:
+            name: '{{ item }}'
+            state: present
+          loop:
+            - build-essential
+            - libssl-dev
+            - libffi-dev
+            - python3-dev
+          become: yes
+
+        - name: Check build
+          shell: |
+            python3 -m venv ./venv
+            ./venv/bin/pip install --upgrade pip
+            ./venv/bin/pip install cryptography --no-binary cryptography

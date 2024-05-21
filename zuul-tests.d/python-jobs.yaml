@@ -1,0 +1,493 @@
+- job:
+    name: zuul-jobs-test-ensure-nox
+    description: Test the ensure-nox role
+    files:
+      - roles/ensure-nox/.*
+      - test-playbooks/ensure-nox.yaml
+    run: test-playbooks/ensure-nox.yaml
+    tags: all-platforms
+
+- job:
+    name: zuul-jobs-test-ensure-nox-centos-8-stream
+    description: Test the ensure-nox role on centos-8-stream
+    parent: zuul-jobs-test-ensure-nox
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: centos-8-stream
+          label: centos-8-stream
+
+- job:
+    name: zuul-jobs-test-ensure-nox-centos-9-stream
+    description: Test the ensure-nox role on centos-9-stream
+    parent: zuul-jobs-test-ensure-nox
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: centos-9-stream
+          label: centos-9-stream
+
+- job:
+    name: zuul-jobs-test-ensure-nox-debian-bookworm
+    description: Test the ensure-nox role on debian-bookworm
+    parent: zuul-jobs-test-ensure-nox
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: debian-bookworm
+          label: debian-bookworm
+
+- job:
+    name: zuul-jobs-test-ensure-nox-debian-bullseye
+    description: Test the ensure-nox role on debian-bullseye
+    parent: zuul-jobs-test-ensure-nox
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: debian-bullseye
+          label: debian-bullseye
+
+- job:
+    name: zuul-jobs-test-ensure-nox-ubuntu-bionic
+    description: Test the ensure-nox role on ubuntu-bionic
+    parent: zuul-jobs-test-ensure-nox
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: ubuntu-bionic
+          label: ubuntu-bionic
+
+- job:
+    name: zuul-jobs-test-ensure-nox-ubuntu-focal
+    description: Test the ensure-nox role on ubuntu-focal
+    parent: zuul-jobs-test-ensure-nox
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: ubuntu-focal
+          label: ubuntu-focal
+
+- job:
+    name: zuul-jobs-test-ensure-nox-ubuntu-jammy
+    description: Test the ensure-nox role on ubuntu-jammy
+    parent: zuul-jobs-test-ensure-nox
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: ubuntu-jammy
+          label: ubuntu-jammy
+
+- job:
+    name: zuul-jobs-test-ensure-pip
+    description: Test the ensure-pip role
+    files:
+      - roles/ensure-pip/.*
+      - roles/ensure-virtualenv/.*
+    run: test-playbooks/ensure-pip/ensure-pip.yaml
+    tags: all-platforms
+
+- job:
+    name: zuul-jobs-test-ensure-pip-centos-8-stream
+    description: Test the ensure-pip role on centos-8-stream
+    parent: zuul-jobs-test-ensure-pip
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: centos-8-stream
+          label: centos-8-stream
+
+- job:
+    name: zuul-jobs-test-ensure-pip-centos-9-stream
+    description: Test the ensure-pip role on centos-9-stream
+    parent: zuul-jobs-test-ensure-pip
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: centos-9-stream
+          label: centos-9-stream
+
+- job:
+    name: zuul-jobs-test-ensure-pip-debian-bookworm
+    description: Test the ensure-pip role on debian-bookworm
+    parent: zuul-jobs-test-ensure-pip
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: debian-bookworm
+          label: debian-bookworm
+
+- job:
+    name: zuul-jobs-test-ensure-pip-debian-bullseye
+    description: Test the ensure-pip role on debian-bullseye
+    parent: zuul-jobs-test-ensure-pip
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: debian-bullseye
+          label: debian-bullseye
+
+- job:
+    name: zuul-jobs-test-ensure-pip-ubuntu-bionic
+    description: Test the ensure-pip role on ubuntu-bionic
+    parent: zuul-jobs-test-ensure-pip
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: ubuntu-bionic
+          label: ubuntu-bionic
+
+- job:
+    name: zuul-jobs-test-ensure-pip-ubuntu-focal
+    description: Test the ensure-pip role on ubuntu-focal
+    parent: zuul-jobs-test-ensure-pip
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: ubuntu-focal
+          label: ubuntu-focal
+
+- job:
+    name: zuul-jobs-test-ensure-pip-ubuntu-jammy
+    description: Test the ensure-pip role on ubuntu-jammy
+    parent: zuul-jobs-test-ensure-pip
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: ubuntu-jammy
+          label: ubuntu-jammy
+
+- job:
+    name: zuul-jobs-test-ensure-pip-localhost
+    description: Test the ensure-pip role on the executor
+    parent: zuul-jobs-test-ensure-pip
+    run: test-playbooks/ensure-pip/ensure-pip-localhost.yaml
+    nodeset:
+      nodes: []
+
+- job:
+    name: zuul-jobs-test-ensure-sphinx
+    description: Test the ensure-sphinx role
+    files:
+      - roles/ensure-sphinx/.*
+    run: test-playbooks/simple-role-test.yaml
+    vars:
+      role_name: ensure-sphinx
+
+- job:
+    name: zuul-jobs-test-ensure-tox
+    description: Test the ensure-tox role
+    files:
+      - roles/ensure-tox/.*
+      - test-playbooks/ensure-tox.yaml
+    run: test-playbooks/ensure-tox.yaml
+    tags: all-platforms
+
+- job:
+    name: zuul-jobs-test-ensure-tox-centos-8-stream
+    description: Test the ensure-tox role on centos-8-stream
+    parent: zuul-jobs-test-ensure-tox
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: centos-8-stream
+          label: centos-8-stream
+
+- job:
+    name: zuul-jobs-test-ensure-tox-centos-9-stream
+    description: Test the ensure-tox role on centos-9-stream
+    parent: zuul-jobs-test-ensure-tox
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: centos-9-stream
+          label: centos-9-stream
+
+- job:
+    name: zuul-jobs-test-ensure-tox-debian-bookworm
+    description: Test the ensure-tox role on debian-bookworm
+    parent: zuul-jobs-test-ensure-tox
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: debian-bookworm
+          label: debian-bookworm
+
+- job:
+    name: zuul-jobs-test-ensure-tox-debian-bullseye
+    description: Test the ensure-tox role on debian-bullseye
+    parent: zuul-jobs-test-ensure-tox
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: debian-bullseye
+          label: debian-bullseye
+
+- job:
+    name: zuul-jobs-test-ensure-tox-ubuntu-bionic
+    description: Test the ensure-tox role on ubuntu-bionic
+    parent: zuul-jobs-test-ensure-tox
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: ubuntu-bionic
+          label: ubuntu-bionic
+
+- job:
+    name: zuul-jobs-test-ensure-tox-ubuntu-focal
+    description: Test the ensure-tox role on ubuntu-focal
+    parent: zuul-jobs-test-ensure-tox
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: ubuntu-focal
+          label: ubuntu-focal
+
+- job:
+    name: zuul-jobs-test-ensure-tox-ubuntu-jammy
+    description: Test the ensure-tox role on ubuntu-jammy
+    parent: zuul-jobs-test-ensure-tox
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: ubuntu-jammy
+          label: ubuntu-jammy
+
+- job:
+    name: zuul-jobs-test-fetch-sphinx-tarball
+    description: Test the fetch-sphinx-tarball role
+    # parenting on tox-docs as we need builded docs first and also this is
+    # the main use-case for this role
+    parent: tox-docs
+    files:
+      - roles/fetch-sphinx-tarball/.*
+      - roles/tox/library/.*
+    tags: all-platforms
+
+- job:
+    name: zuul-jobs-test-fetch-sphinx-tarball-centos-8-stream
+    description: Test the fetch-sphinx-tarball role on centos-8-stream
+    parent: zuul-jobs-test-fetch-sphinx-tarball
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: centos-8-stream
+          label: centos-8-stream
+
+- job:
+    name: zuul-jobs-test-fetch-sphinx-tarball-centos-9-stream
+    description: Test the fetch-sphinx-tarball role on centos-9-stream
+    parent: zuul-jobs-test-fetch-sphinx-tarball
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: centos-9-stream
+          label: centos-9-stream
+
+- job:
+    name: zuul-jobs-test-fetch-sphinx-tarball-debian-bookworm
+    description: Test the fetch-sphinx-tarball role on debian-bookworm
+    parent: zuul-jobs-test-fetch-sphinx-tarball
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: debian-bookworm
+          label: debian-bookworm
+
+- job:
+    name: zuul-jobs-test-fetch-sphinx-tarball-debian-bullseye
+    description: Test the fetch-sphinx-tarball role on debian-bullseye
+    parent: zuul-jobs-test-fetch-sphinx-tarball
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: debian-bullseye
+          label: debian-bullseye
+
+- job:
+    name: zuul-jobs-test-fetch-sphinx-tarball-ubuntu-bionic
+    description: Test the fetch-sphinx-tarball role on ubuntu-bionic
+    parent: zuul-jobs-test-fetch-sphinx-tarball
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: ubuntu-bionic
+          label: ubuntu-bionic
+
+- job:
+    name: zuul-jobs-test-fetch-sphinx-tarball-ubuntu-focal
+    description: Test the fetch-sphinx-tarball role on ubuntu-focal
+    parent: zuul-jobs-test-fetch-sphinx-tarball
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: ubuntu-focal
+          label: ubuntu-focal
+
+- job:
+    name: zuul-jobs-test-fetch-sphinx-tarball-ubuntu-jammy
+    description: Test the fetch-sphinx-tarball role on ubuntu-jammy
+    parent: zuul-jobs-test-fetch-sphinx-tarball
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: ubuntu-jammy
+          label: ubuntu-jammy
+
+- job:
+    name: zuul-jobs-test-tox
+    description: Test the tox role's sibling functionality
+    files:
+      - roles/tox/.*
+      - roles/ensure-tox/.*
+      - tox.ini
+      - test-playbooks/python/tox.yaml
+      - test-playbooks/python/tox.ini
+    run: test-playbooks/python/tox.yaml
+    required-projects:
+      - zuul/zuul
+      - zuul/nodepool
+
+- job:
+    name: zuul-jobs-test-fetch-tox-output
+    description: Test the fetch-tox-output
+    files:
+      - roles/ensure-output-dirs/.*
+      - roles/fetch-tox-output/.*
+      - roles/fetch-output/.*
+      - roles/ensure-tox/.*
+      - test-playbooks/python/fetch-tox-output.yaml
+      - test-playbooks/tox/reinstall-tox.yaml
+    pre-run: test-playbooks/tox/reinstall-tox.yaml
+    run: test-playbooks/python/fetch-tox-output.yaml
+    vars:
+      zuul_use_fetch_output: true
+
+- job:
+    name: zuul-jobs-test-fetch-tox-output-synchronize
+    description: Test the fetch-tox-output
+    files:
+      - roles/fetch-tox-output/.*
+    run: test-playbooks/python/fetch-tox-output.yaml
+    vars:
+      zuul_use_fetch_output: false
+
+- job:
+    name: zuul-jobs-test-fetch-subunit-output
+    description: Test the fetch-subunit-output
+    files:
+      - roles/ensure-output-dirs/.*
+      - roles/fetch-subunit-output/.*
+      - roles/fetch-output/.*
+    run: test-playbooks/python/fetch-subunit-output.yaml
+    vars:
+      zuul_use_fetch_output: true
+
+- job:
+    name: zuul-jobs-test-fetch-subunit-output-synchronize
+    description: Test the fetch-subunit-output
+    files:
+      - roles/fetch-subunit-output/.*
+    run: test-playbooks/python/fetch-subunit-output.yaml
+    vars:
+      zuul_use_fetch_output: false
+
+- job:
+    name: zuul-jobs-test-fetch-sphinx-output
+    description: Test the fetch-sphinx-output
+    files:
+      - roles/ensure-output-dirs/.*
+      - roles/fetch-sphinx-output/.*
+      - roles/fetch-output/.*
+    run: test-playbooks/python/fetch-sphinx-output.yaml
+    vars:
+      zuul_use_fetch_output: true
+
+- job:
+    name: zuul-jobs-test-fetch-sphinx-output-synchronize
+    description: Test the fetch-sphinx-output
+    files:
+      - roles/fetch-sphinx-output/.*
+    run: test-playbooks/python/fetch-sphinx-output.yaml
+    vars:
+      zuul_use_fetch_output: false
+
+- job:
+    name: zuul-jobs-test-fetch-sphinx-tarball-with-zuul-output
+    description: Test the fetch-sphinx-tarball
+    files:
+      - roles/ensure-output-dirs/.*
+      - roles/fetch-sphinx-tarball/.*
+      - roles/fetch-output/.*
+    run: test-playbooks/python/fetch-sphinx-tarball.yaml
+    vars:
+      zuul_use_fetch_output: true
+
+- job:
+    name: zuul-jobs-test-fetch-sphinx-tarball-synchronize
+    description: Test the fetch-sphinx-tarball
+    files:
+      - roles/fetch-sphinx-tarball/.*
+    run: test-playbooks/python/fetch-sphinx-tarball.yaml
+    vars:
+      zuul_use_fetch_output: false
+
+- job:
+    name: zuul-jobs-test-upload-pypi
+    description: Test the upload-pypi role
+    files:
+      - roles/upload-pypi/.*
+      - test-playbooks/python/upload-pypi.yaml
+    run: test-playbooks/python/upload-pypi.yaml
+
+# -* AUTOGENERATED *-
+#  The following project section is autogenerated by
+#    tox -e update-test-platforms
+#  Please re-run to generate new job lists
+
+- project:
+    check:
+      jobs: &id001
+        - zuul-jobs-test-ensure-nox-centos-8-stream
+        - zuul-jobs-test-ensure-nox-centos-9-stream
+        - zuul-jobs-test-ensure-nox-debian-bookworm
+        - zuul-jobs-test-ensure-nox-debian-bullseye
+        - zuul-jobs-test-ensure-nox-ubuntu-bionic
+        - zuul-jobs-test-ensure-nox-ubuntu-focal
+        - zuul-jobs-test-ensure-nox-ubuntu-jammy
+        - zuul-jobs-test-ensure-pip-centos-8-stream
+        - zuul-jobs-test-ensure-pip-centos-9-stream
+        - zuul-jobs-test-ensure-pip-debian-bookworm
+        - zuul-jobs-test-ensure-pip-debian-bullseye
+        - zuul-jobs-test-ensure-pip-ubuntu-bionic
+        - zuul-jobs-test-ensure-pip-ubuntu-focal
+        - zuul-jobs-test-ensure-pip-ubuntu-jammy
+        - zuul-jobs-test-ensure-pip-localhost
+        - zuul-jobs-test-ensure-sphinx
+        - zuul-jobs-test-ensure-tox-centos-8-stream
+        - zuul-jobs-test-ensure-tox-centos-9-stream
+        - zuul-jobs-test-ensure-tox-debian-bookworm
+        - zuul-jobs-test-ensure-tox-debian-bullseye
+        - zuul-jobs-test-ensure-tox-ubuntu-bionic
+        - zuul-jobs-test-ensure-tox-ubuntu-focal
+        - zuul-jobs-test-ensure-tox-ubuntu-jammy
+        - zuul-jobs-test-fetch-sphinx-tarball-centos-8-stream
+        - zuul-jobs-test-fetch-sphinx-tarball-centos-9-stream
+        - zuul-jobs-test-fetch-sphinx-tarball-debian-bookworm
+        - zuul-jobs-test-fetch-sphinx-tarball-debian-bullseye
+        - zuul-jobs-test-fetch-sphinx-tarball-ubuntu-bionic
+        - zuul-jobs-test-fetch-sphinx-tarball-ubuntu-focal
+        - zuul-jobs-test-fetch-sphinx-tarball-ubuntu-jammy
+        - zuul-jobs-test-tox
+        - zuul-jobs-test-fetch-tox-output
+        - zuul-jobs-test-fetch-tox-output-synchronize
+        - zuul-jobs-test-fetch-subunit-output
+        - zuul-jobs-test-fetch-subunit-output-synchronize
+        - zuul-jobs-test-fetch-sphinx-output
+        - zuul-jobs-test-fetch-sphinx-output-synchronize
+        - zuul-jobs-test-fetch-sphinx-tarball-with-zuul-output
+        - zuul-jobs-test-fetch-sphinx-tarball-synchronize
+        - zuul-jobs-test-upload-pypi
+    gate:
+      jobs: *id001
+    periodic-weekly:
+      jobs: *id001

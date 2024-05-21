@@ -1,0 +1,28 @@
+package_mirror: "{{ http_or_https }}://{{ mirror_fqdn }}/{{ ansible_distribution | lower }}-stream"
+epel_mirror: "{{ http_or_https }}://{{ mirror_fqdn }}/epel"
+wheel_mirror: "{{ http_or_https }}://{{ mirror_fqdn }}/wheel/{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version }}-{{ ansible_architecture | lower }}"
+
+configure_mirrors_components_9_stream:
+  'baseos': true
+  'baseos-debug': false
+  'baseos-source': false
+  'appstream': true
+  'appstream-debug': false
+  'appstream-source': false
+  'crb': true
+  'crb-debug': false
+  'crb-source': false
+  'highavailability': true
+  'highavailability-debug': false
+  'highavailability-source': false
+  'nfv': true
+  'nfv-debug': false
+  'nfv-source': false
+  'rt': true
+  'rt-debug': false
+  'rt-source': false
+  'resilientstorage': true
+  'resilientstorage-debug': false
+  'resilientstorage-source': false
+  'extras-common': false
+  'extras-common-source': false

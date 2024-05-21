@@ -1,0 +1,12 @@
+- name: Check API endpoint is defined
+  assert:
+    that:
+      - local_log_download_api is defined
+    msg: 'local_log_download_api must be defined'
+
+- name: Create download script
+  delegate_to: localhost
+  template:
+    dest: '{{ zuul.executor.log_root }}/download-logs.sh'
+    src: 'download-logs.sh.j2'
+    mode: 0755

@@ -1,0 +1,7 @@
+- hosts: all
+  tasks:
+    - name: Setup file
+      command: stack new new-project
+
+    - name: Copy file over zuul-jobs
+      command: rsync -a new-project/ "{{ zuul.project.src_dir }}/"

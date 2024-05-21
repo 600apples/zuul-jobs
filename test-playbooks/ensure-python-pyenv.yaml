@@ -1,0 +1,13 @@
+- hosts: all
+  tasks:
+    - name: Include ensure-python role
+      include_role:
+        name: ensure-python
+      vars:
+        python_use_pyenv: true
+        python_version: 3.8
+
+    - name: Check installed version of Python
+      command: /usr/local/bin/python3 --version
+      register: _check_version
+      failed_when: "'Python 3.8' not in _check_version.stdout"

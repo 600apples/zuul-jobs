@@ -1,0 +1,106 @@
+- name: Fail if no terraform command is given
+  fail:
+    msg: "No terraform command given."
+  when: terraform_command is not defined
+
+- name: Create terrafrom overrides
+  when: terraform_overrides is defined
+  copy:
+    content: "{{ zj_override.content }}"
+    dest: "{{ zj_override.dir }}/override.tf"
+    mode: 0644
+  loop: "{{ terraform_overrides }}"
+  loop_control:
+    loop_var: zj_override
+
+- name: Initialize terraform
+  command: "{{ terraform_executable }} init -no-color -input=false"
+  args:
+    chdir: "{{ zuul_work_dir }}"
+  environment:
+    TF_IN_AUTOMATION: 1
+
+- name: List workspaces
+  when: terraform_workspace is defined
+  shell: |
+    set -o pipefail
+    {{ terraform_executable }} workspace list -no-color | sed 's/^..//'
+  register: _terraform_workspace_list
+  args:
+    executable: /bin/bash
+    chdir: "{{ zuul_work_dir }}"
+  environment:
+    TF_IN_AUTOMATION: 1
+
+- name: Create workspace if it doesn't exist
+  when:
+    - terraform_workspace is defined
+    - terraform_workspace not in _terraform_workspace_list.stdout_lines
+    - terraform_create_workspace
+  command: "{{ terraform_executable }} workspace new -no-color {{ terraform_workspace }}"
+  args:
+    chdir: "{{ zuul_work_dir }}"
+  environment:
+    TF_IN_AUTOMATION: 1
+
+- name: Select workspace
+  when:
+    - terraform_workspace is defined
+  command: "{{ terraform_executable }} workspace select -no-color {{ terraform_workspace }}"
+  args:
+    chdir: "{{ zuul_work_dir }}"
+  environment:
+    TF_IN_AUTOMATION: 1
+
+- name: Run terraform
+  register: terraform_state_change
+  command: >-
+    {{ terraform_executable }} {{ terraform_command }}
+    -no-color
+    -input=false
+    {{ terraform_extra_args }}
+    {% if terraform_command == 'apply' or terraform_command == 'destroy' %}-auto-approve{% endif %}
+    {{ terraform_plan }}
+  args:
+    chdir: "{{ zuul_work_dir }}"
+  environment:
+    TF_IN_AUTOMATION: 1
+
+- name: Remove workspace
+  when:
+    - terraform_purge_workspace
+    - terraform_command == "destroy"
+    - terraform_workspace is defined
+    - terraform_workspace != "default"
+  block:
+    - name: Leave workspace
+      command: "{{ terraform_executable }} workspace select -no-color default"
+      args:
+        chdir: "{{ zuul_work_dir }}"
+      environment:
+        TF_IN_AUTOMATION: 1
+    - name: Delete workspace
+      command: "{{ terraform_executable }} workspace delete -no-color {{ terraform_workspace }}"
+      args:
+        chdir: "{{ zuul_work_dir }}"
+      environment:
+        TF_IN_AUTOMATION: 1
+
+- name: Get path to main.tf relative to the repo root
+  when: terraform_command == "plan"
+  register: main_file_location
+  command: "git ls-files --full-name main.tf"  # noqa command-instead-of-module
+  args:
+    chdir: "{{ zuul_work_dir }}"
+
+- name: Return output if command is plan
+  when:
+    - terraform_command == "plan"
+    - terraform_comment
+  zuul_return:
+    data:
+      zuul:
+        file_comments: >
+          {% set file_comments = {} -%}
+          {% set _ = file_comments.update({main_file_location.stdout: [{'message': terraform_state_change.stdout }]}) %}
+          {{- file_comments -}}

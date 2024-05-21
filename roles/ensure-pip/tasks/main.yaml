@@ -1,0 +1,80 @@
+- name: Check if pip is installed
+  shell: |
+    PYTHON2=0
+    PYTHON3=1
+    {% if ensure_pip_from_packages and ensure_pip_from_packages_with_python2 %}
+    PYTHON2=1
+    {% elif ensure_pip_from_upstream and 'python2' in ensure_pip_from_upstream_interpreters %}
+    PYTHON2=1
+    {% endif %}
+    {% if ensure_pip_from_upstream and 'python3' not in ensure_pip_from_upstream_interpreters %}
+    PYTHON3=0
+    {% endif %}
+
+    # Not all platforms install a `pip` when installing python
+    # specific pip packages. We first check if pip$VERSION is
+    # available and if not fallback to checking if just `pip`
+    # is present.
+    if [ "$PYTHON2" -eq "1" ] ; then
+        command -v pip2 || command -v pip || exit 1
+        python2 -m wheel --help || exit 1
+    fi
+    if [ "$PYTHON3" -eq "1" ] ; then
+        command -v pip3 || command -v pip || exit 1
+        python3 -m wheel --help || exit 1
+    fi
+  args:
+    executable: /bin/bash
+  register: pip_preinstalled
+  failed_when: false
+
+- name: Install pip from packages
+  include_tasks: "{{ zj_distro_os }}"
+  with_first_found:
+    - "{{ ansible_distribution_release }}.yaml"
+    - "{{ ansible_distribution }}.yaml"
+    - "{{ ansible_os_family }}.yaml"
+    - "default.yaml"
+  when:
+    - ensure_pip_from_packages
+    - pip_preinstalled.rc != 0
+  loop_control:
+    loop_var: zj_distro_os
+
+- name: Include workarounds
+  import_tasks: workarounds.yaml
+
+- name: Install pip from source
+  include_tasks: source.yaml
+  when:
+    - ensure_pip_from_upstream
+    - pip_preinstalled.rc != 0
+
+#
+# Export a working virtualenv_command
+#
+
+# Ansible's "pip:" module looks at the virtualenv_command and, if it
+# isn't fully qualified, tries to find the command and add the leading
+# path for you.  However, it doesn't split it up; it will actually
+# look for a command "python3 -m venv" (not, as you'd want, just
+# "python") and everything fails.  Thus we find the full path to
+# python3 and build our default command for output.
+- name: Probe for venv python full path
+  shell: |
+    command -v python3
+  args:
+    executable: /bin/bash
+  tags:
+    - skip_ansible_lint  # command is a bash built-in
+  failed_when: false
+  register: _venv_probe
+
+- name: Set host default
+  set_fact:
+    _host_virtualenv: '{{ (_venv_probe.rc == 0) | ternary(_venv_probe.stdout + " -m venv", "virtualenv") }}'
+
+- name: Set ensure_pip_virtualenv_command
+  set_fact:
+    ensure_pip_virtualenv_command: '{{ ensure_pip_virtualenv_command | default(_host_virtualenv) }}'
+    cacheable: true

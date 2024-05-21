@@ -1,0 +1,72 @@
+- name: Install distro-specific packages
+  include_tasks: "{{ zj_distro_os }}"
+  with_first_found:
+    - "{{ ansible_distribution }}-{{ ansible_distribution_version }}.yaml"
+    - "{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yaml"
+    - "{{ ansible_distribution }}.yaml"
+    - "{{ ansible_os_family }}.yaml"
+    - "default.yaml"
+  loop_control:
+    loop_var: zj_distro_os
+
+- name: Create /tmp/zookeeper
+  file:
+    path: /tmp/zookeeper
+    state: directory
+    mode: 0755
+  become: true
+
+- name: Get and extract Zookeeper
+  unarchive:
+    src: https://archive.apache.org/dist/zookeeper/zookeeper-{{ _zookeeper_install_version }}/apache-zookeeper-{{ _zookeeper_install_version }}-bin.tar.gz
+    dest: /tmp/zookeeper
+    remote_src: yes
+  become: true
+
+- name: Link install to a known location
+  file:
+    src: /tmp/zookeeper/apache-zookeeper-{{ _zookeeper_install_version }}-bin
+    dest: /opt/zookeeper
+    state: link
+  become: true
+
+- name: Create a tmpfs for ZooKeeper
+  mount:
+    state: mounted
+    path: /tmp/zookeeper/version-2
+    fstype: tmpfs
+    opts: "nodev,nosuid"
+    src: "none"
+  when: zookeeper_use_tmpfs
+  become: true
+
+- name: Setup Zookeeper config file
+  copy:
+    src: /opt/zookeeper/conf/zoo_sample.cfg
+    dest: /opt/zookeeper/conf/zoo.cfg
+    remote_src: true
+    mode: 0644
+  become: true
+
+- name: Enable ZooKeeper 4lw
+  lineinfile:
+    path: /opt/zookeeper/conf/zoo.cfg
+    line: "4lw.commands.whitelist=*"
+  become: true
+
+- name: Setup ZooKeeper TLS
+  include_tasks: ./setup_tls.yaml
+  when: zookeeper_use_tls
+
+- name: Ensure Zookeeper not running
+  command: pkill -f zookeeper
+  register: _pkill
+  # 0 is killed
+  # 1 is no process matched
+  # >1 is some sort of actual error
+  failed_when: _pkill.rc > 1
+  become: true
+
+- name: Start Zookeeper
+  command: /opt/zookeeper/bin/zkServer.sh start
+  become: true

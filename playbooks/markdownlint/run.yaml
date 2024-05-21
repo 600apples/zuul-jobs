@@ -1,0 +1,5 @@
+- name: Run markdownlint
+  hosts: all
+  roles:
+    - revoke-sudo
+    - markdownlint

@@ -1,0 +1,45 @@
+- name: Set nim_path fact
+  set_fact:
+    nim_path: "{{ ansible_user_dir }}/.nimble/bin/"
+    cacheable: true
+
+- name: Check if nimble is installed
+  command: nimble --version
+  environment:
+    PATH: "{{ nim_path }}:{{ ansible_env.PATH }}"
+  failed_when: false
+  changed_when: false
+  register: _nimble_installed
+
+- name: Install nimble
+  when: _nimble_installed.rc != 0
+  block:
+    # Current version of nimble is not compatible with openssl3, which is included in CentOS9
+    - name: Install compat-openssl11 in CentOS 9
+      package:
+        name: compat-openssl11
+      become: yes
+      when:
+        - ansible_distribution == 'CentOS'
+        - ansible_distribution_major_version == '9'
+
+    - name: Create tempfile for choosenim install script
+      tempfile:
+      register: choosenim_installer
+
+    - name: Install nim with choosenim
+      get_url:
+        url: https://nim-lang.org/choosenim/init.sh
+        dest: "{{ choosenim_installer.path }}"
+        mode: 0755
+
+    - name: Install nim
+      command: "{{ choosenim_installer.path }} -y"
+      environment:
+        CHOOSENIM_NO_ANALYTICS: 1
+        CHOOSENIM_CHOOSE_VERSION: "{{ nim_version }}"
+  always:
+    - name: Remove installer tempfile
+      file:
+        state: absent
+        path: "{{ choosenim_installer.path }}"

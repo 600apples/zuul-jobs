@@ -1,0 +1,24 @@
+- name: Test correct version of bazel installed
+  hosts: all
+  roles:
+    - role: ensure-bazel
+  post_tasks:
+    - name: Confirm correct version installed
+      shell: bazel --version | grep -Eo '([0-9]+\.)+[0-9]+'
+      ignore_errors: yes
+      register: confirmed_bazel_version
+      failed_when: bazel_version != confirmed_bazel_version.stdout
+
+- name: Test bazel not installed when install_bazel_if_missing is false
+  hosts: all
+  roles:
+    - role: ensure-bazel
+      vars:
+        bazel_version: '1.2.1'
+        install_bazel_if_missing: False
+  post_tasks:
+    - name: Confirm version not installed
+      shell: bazel --version | grep -Eo '([0-9]+\.)+[0-9]+'
+      ignore_errors: yes
+      register: confirmed_bazel_version
+      failed_when: bazel_version == confirmed_bazel_version.stdout

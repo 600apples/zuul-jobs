@@ -1,0 +1,207 @@
+# Run the intermediate registry on this host, and also build an image
+# and place it in the registry to simulate an artifact from a previous
+# build which has been passed to this one (so that we can test pulling
+# from the intermediate registry in the correct order).
+
+- hosts: intermediate-registry
+  name: Set up the intermediate registry and add a build
+  tasks:
+    - name: Include intermediate registry vars
+      include_vars: vars/intermediate-registry-auth.yaml
+    - name: Include previous build vars
+      include_vars: vars/previous-build.yaml
+    - name: Run the intermediate registry
+      include_role:
+        name: run-test-intermediate-registry
+    - name: Install the intermediate registry cert
+      include_role:
+        name: ensure-registry-cert
+      vars:
+        registry_host: localhost
+        registry_port: 5000
+        registry_cert: "{{ intermediate_registry_tls_cert }}"
+    - name: Set up user credentials for the intermediate registry
+      include_role:
+        name: intermediate-registry-user-config
+    - name: "Build a container image for the previous build with docker roles"
+      when: container_command == 'docker'
+      include_role:
+        name: "build-docker-image"
+      vars:
+        docker_images:
+          - context: test-playbooks/registry/docker
+            repository: "{{ previous_build_repository }}"
+    - name: "Build a container image for the previous build with container-image roles"
+      when: container_command != 'docker'
+      include_role:
+        name: "build-container-image"
+      vars:
+        container_images:
+          - context: test-playbooks/registry/docker
+            repository: "{{ previous_build_repository }}"
+    - name: Tag the previous build
+      command: "{{ container_command }} tag {{ previous_build_repository }}:latest localhost:5000/{{ previous_build_repository }}:{{ previous_build_uuid }}_latest"
+    - name: Push the previous build to the intermediate registry
+      command: "{{ container_command }} push localhost:5000/{{ previous_build_repository }}:{{ previous_build_uuid }}_latest"
+
+# This is also essentially pre-configuration for the real test of the
+# roles.  This sets up a fake executor (since we can't run the
+# necessary commands untrusted on the real one).
+
+- hosts: executor
+  name: Set up a simulated executor
+  tasks:
+    - name: Include intermediate registry vars
+      include_vars: vars/intermediate-registry-auth.yaml
+    - name: Create simulated zuul work directory
+      become: true
+      file:
+        state: directory
+        path: "{{ zuul.executor.work_root }}"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+    - name: Install the intermediate registry cert
+      include_role:
+        name: ensure-registry-cert
+      vars:
+        registry_host: "{{ intermediate_registry.host }}"
+        registry_port: "{{ intermediate_registry.port }}"
+        registry_cert: "{{ intermediate_registry_tls_cert }}"
+    - name: Make /etc/docker directory zuul-owned
+      become: true
+      file:
+        state: directory
+        path: "/etc/docker"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        recurse: true
+    - name: Configure /etc/hosts for intermediate registry
+      become: true
+      lineinfile:
+        path: /etc/hosts
+        state: present
+        regex: "^{{ hostvars['intermediate-registry'].nodepool.private_ipv4 }}\t{{ intermediate_registry.host }}$"
+        line: "{{ hostvars['intermediate-registry'].nodepool.private_ipv4 }}\t{{ intermediate_registry.host }}"
+        insertafter: EOF
+
+# This begins the simulation of what we would expect to happen in a
+# normal job.
+
+- hosts: builder
+  name: Test the buildset registry roles
+  roles:
+    - run-buildset-registry
+    - use-buildset-registry
+
+- hosts: executor
+  name: Test pulling from the intermediate registry
+  tasks:
+    - name: Include intermediate registry vars
+      include_vars: vars/intermediate-registry-auth.yaml
+    - name: Include previous build vars
+      include_vars: vars/previous-build.yaml
+    - name: Run pull-from-intermediate-registry role
+      include_role:
+        name: pull-from-intermediate-registry
+      vars:
+        zuul_artifacts: "{{ previous_build_zuul.artifacts }}"
+
+# This simulates a build actually using the previous build.
+
+- hosts: builder
+  name: Test that the previous build is available
+  tasks:
+    - name: Include intermediate registry vars
+      include_vars: vars/intermediate-registry-auth.yaml
+    - name: Include previous build vars
+      include_vars: vars/previous-build.yaml
+    - name: Pull the previous build from buildset registry to the builder host
+      command: "{{ container_command }} pull {{ previous_build_repository }}:latest"
+    - name: "Show local container images for debugging"
+      command: "{{ container_command }} image ls"
+    - name: Verify previously built image is in buildset registry
+      command: "{{ container_command }} image inspect {{ previous_build_repository }}:latest"
+
+# Back to straightforward use of the roles under test.
+
+- hosts: builder
+  name: Test building a container image
+  tasks:
+
+    - name: Create fake sibling projects
+      command: >-
+        mkdir -p src/opendev.org/project/fake-sibling &&
+        mkdir -p src/openstack.org/project/fake-sibling &&
+        touch  src/opendev.org/project/fake-sibling/file &&
+        touch  src/openstack.org/project/fake-sibling/file
+
+    - name: Build docker image
+      include_role:
+        name: "build-{{ (container_command == 'docker') | ternary('docker', 'container') }}-image"
+      vars:
+        _normal_docker_images:
+          - context: test-playbooks/registry/docker-siblings
+            repository: downstream/image
+            siblings:
+              - opendev.org/project/fake-sibling
+              - openstack.org/project/fake-sibling
+            target: first
+          - context: test-playbooks/registry/docker-siblings
+            repository: downstream/image2
+            target: second
+            siblings:
+              - opendev.org/project/fake-sibling
+              - openstack.org/project/fake-sibling
+        _arch_docker_images:
+          - context: test-playbooks/registry/docker-siblings
+            repository: downstream/image
+            target: first
+            siblings:
+              - opendev.org/project/fake-sibling
+              - openstack.org/project/fake-sibling
+            arch: ['linux/amd64', 'linux/arm64']
+          - context: test-playbooks/registry/docker-siblings
+            repository: downstream/image2
+            target: second
+            siblings:
+              - opendev.org/project/fake-sibling
+              - openstack.org/project/fake-sibling
+            arch: ['linux/amd64', 'linux/arm64']
+        docker_images: "{{ multiarch | ternary(_arch_docker_images, _normal_docker_images) }}"
+        container_images: "{{ docker_images }}"
+- hosts: executor
+  name: Test pushing to the intermediate registry
+  tasks:
+    - name: Include intermediate registry vars
+      include_vars: vars/intermediate-registry-auth.yaml
+    - name: Run push-to-intermediate-registry role
+      include_role:
+        name: push-to-intermediate-registry
+      vars:
+        _normal_docker_images:
+          - context: playbooks/registry/docker
+            repository: downstream/image
+        _arch_docker_images:
+          - context: playbooks/registry/docker
+            repository: downstream/image
+            arch: ['linux/amd64', 'linux/arm64']
+        docker_images: "{{ multiarch | ternary(_arch_docker_images, _normal_docker_images) }}"
+        container_images: "{{ docker_images }}"
+
+# And finally an external verification step.
+
+- hosts: executor
+  name: Test that the newly built image was pushed to the intermediate registry
+  tasks:
+    - name: Include intermediate registry vars
+      include_vars: vars/intermediate-registry-auth.yaml
+    - name: Fetch intermediate registry catalog
+      uri:
+        url: "https://{{ intermediate_registry.host }}:{{ intermediate_registry.port }}/v2/_catalog"
+        validate_certs: false
+        user: "{{ intermediate_registry.username }}"
+        password: "{{ intermediate_registry.password }}"
+      register: catalog
+    - name: Verify newly built image is in intermediate registry catalog
+      assert:
+        that: "'downstream/image' in catalog.json.repositories"

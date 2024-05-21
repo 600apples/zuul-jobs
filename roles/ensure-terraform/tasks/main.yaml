@@ -1,0 +1,11 @@
+- name: Check installed terraform version
+  command: "{{ terraform_executable }} version"
+  register: terraform_installed_version
+  failed_when: false
+
+- name: Install terraform
+  include_tasks: install-terraform.yaml
+  when:
+    - terraform_installed_version.rc != 0 or
+      "terraform_version != (terraform_installed_version.msg | \
+       regex_replace(terraform_version_pattern, '\\g<version>'))"

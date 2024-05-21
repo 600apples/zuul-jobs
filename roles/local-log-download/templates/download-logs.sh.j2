@@ -1,0 +1,128 @@
+#!/bin/bash
+
+set -e
+
+ZUUL_API=${ZUUL_API:-"{{ local_log_download_api }}"}
+ZUUL_BUILD_UUID=${ZUUL_BUILD_UUID:-"{{ zuul.build }}"}
+
+ZUUL_API_URL=${ZUUL_API}/build/${ZUUL_BUILD_UUID}
+
+(( ${BASH_VERSION%%.*} >= 4 )) || { echo >&2 "bash >=4 required to download."; exit 1; }
+command -v python3 >/dev/null 2>&1 || { echo >&2 "Python3 is required to download."; exit 1; }
+command -v curl >/dev/null 2>&1 || { echo >&2 "curl is required to download."; exit 1; }
+
+function log {
+    echo "$(date -Iseconds) | $@"
+}
+
+{#
+ # Parse the zuul build results to find the manifest, then parse
+ # the manifest and print files that shoud be downloaded.  The
+ # first line of output is the base url, then every line after is a
+ # file to download.
+#}
+function get_urls {
+    /usr/bin/env python3 - <<EOF
+import gzip
+import json
+import urllib.request
+from urllib.error import HTTPError
+import sys
+
+try:
+    base_url = urllib.request.urlopen("${ZUUL_API_URL}").read()
+    base_json = json.loads(base_url)
+    manifest_url = [x['url'] for x in base_json['artifacts'] if x.get('metadata', {}).get('type') == 'zuul_manifest'][0]
+    manifest = urllib.request.urlopen(manifest_url)
+    if manifest.info().get('Content-Encoding') == 'gzip':
+        manifest_json = json.loads(gzip.decompress(manifest.read()))
+    else:
+        manifest_json = json.loads(manifest.read())
+except HTTPError as e:
+    if e.code == 404:
+        print(
+            "Could not find build UUID in Zuul API. This can happen with "
+            "buildsets still running, or aborted ones. Try again after the "
+            "buildset is reported back to Zuul.", file=sys.stderr)
+    else:
+        print(e, file=sys.stderr)
+    sys.exit(2)
+
+def p(node, parent):
+    if node.get('mimetype') != 'application/directory':
+        print(parent+node['name'])
+    if node.get('children'):
+        for child in node.get('children'):
+                p(child, parent+node['name']+'/')
+
+print(base_json['log_url'])
+for i in manifest_json['tree']:
+    p(i, '')
+
+EOF
+}
+
+function save_file {
+    local exit_code=0
+    local base_url="$1"
+    local file="$2"
+    local xtra_args="--compressed"
+
+   {#
+    # Do not uncompress .xz, libcurl cannot handle it
+   #}
+    if [[ "${file}" == *.xz ]]; then
+        xtra_args=""
+    fi
+    curl -s ${xtra_args} --create-dirs -o "${file}" "${base_url}${file}" || exit_code=$?
+    if [[ $exit_code -ne 0 ]]; then
+        log "Failed to download ${base_url}${file}; skipping"
+    fi
+   {#
+    # Using --compressed we will send an Accept-Encoding: gzip header
+    # and the data will come to us across the network compressed.
+    # However, we see weird things like .gz files (as stored on disk)
+    # actually uncompressed, so we check if this really looks like an
+    # ASCII file and rename for clarity.
+   #}
+    if [[ "${file}" == *.gz ]]; then
+        local type=$(file "${file}")
+        if [[ "${type}" =~ "ASCII text" ]] || [[ "${type}" =~ "Unicode text" ]]; then
+            local new_name=${file%.gz}
+            log "Renaming to ${new_name}"
+            mv "${file}" "${new_name}"
+        fi
+    fi
+
+}
+
+{#
+ # - read in file _files so we exit if the lookup fails for some reason
+ # - jinja gets confused with ${#files[@]} as it looks like a comment,
+ #   wrap it in raw
+#}
+log "Querying ${ZUUL_API_URL} for manifest"
+_files="$(get_urls)"
+readarray -t files <<< "${_files}"
+{% raw %}
+len="${#files[@]}"
+{% endraw %}
+if [[ -z "${DOWNLOAD_DIR}" ]]; then
+    DOWNLOAD_DIR=$(mktemp -d --tmpdir zuul-logs.XXXXXX)
+fi
+log "Saving logs to ${DOWNLOAD_DIR}"
+
+pushd "${DOWNLOAD_DIR}" > /dev/null
+
+base_url="${files[0]}"
+log "Getting logs from ${base_url}"
+for (( i=1; i<$len; i++ )); do
+    file="${files[i]}"
+    printf -v _out "  %-80s [ %04d/%04d ]" "${file}" "${i}" $(( len -1 ))
+    log "$_out"
+    save_file $base_url $file
+done
+
+popd >/dev/null
+
+log "Download to ${DOWNLOAD_DIR} complete!"

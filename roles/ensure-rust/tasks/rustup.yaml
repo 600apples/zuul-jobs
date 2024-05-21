@@ -1,0 +1,27 @@
+- name: Install Rust
+  shell: |  # noqa command-instead-of-module
+      set -o pipefail
+      curl -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path --default-toolchain {{ ensure_rust_rustup_toolchain }}
+  environment:
+    RUSTUP_HOME: '{{ ensure_rust_rustup_path }}'
+    CARGO_HOME: '{{ ensure_rust_rustup_path }}'
+  args:
+    executable: /bin/bash
+  become: yes
+
+# Install wrappers that set env vars for global usage.  See
+#  https://github.com/rust-lang/rustup/issues/1085#issuecomment-296604244
+
+- name: Install wrapper helper script
+  template:
+    src: rust-wrap-setup.sh.j2
+    dest: /usr/local/bin/rust-wrap-setup
+    owner: root
+    group: root
+    mode: 0755
+  become: yes
+
+- name: Run wrapper installation
+  shell: |
+    /usr/local/bin/rust-wrap-setup
+  become: yes

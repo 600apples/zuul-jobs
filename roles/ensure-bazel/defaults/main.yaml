@@ -1,0 +1,5 @@
+---
+bazel_version: '3.1.0'
+bazel_release_url: 'https://github.com/bazelbuild/bazel/releases/download'
+bazel_installer_checksum:
+install_bazel_if_missing: true

@@ -1,0 +1,50 @@
+# On a static node, this saves us having to re-import the key
+# constantly
+- name: Check for existing key
+  command: |
+    gpg --list-keys {{ zj_encrypt_file.key_id }}
+  register: _key_exists
+  # A found key returns 0, a missing key returns 2
+  failed_when: _key_exists.rc != 0 and _key_exists.rc != 2
+
+# If the key may expire, we need to always import it because we can't
+# be sure if the key hasn't changed to have a new expiration date.
+# GPG outputs this in a string:
+#  [expires: YYYY-DD-MM] or [expired: YYYY-DD-MM]
+- name: Check for expiry string
+  set_fact:
+    _key_has_expiry: "{{ _key_exists.stdout | regex_search(regexp) }}"
+  vars:
+    regexp: '\[expire[sd]: '
+
+- name: Install key
+  when: _key_exists.rc != 0 or _key_has_expiry != ''
+  block:
+    - name: Create temporary keyfile
+      tempfile:
+        state: file
+      register: _keyfile
+
+    - name: Copy keyfile material  # noqa risky-file-permissions
+      copy:
+        content: '{{ zj_encrypt_file.gpg_asc }}'
+        dest: '{{ _keyfile.path }}'
+
+    - name: Import key
+      command: |
+        gpg --import {{ _keyfile.path }}
+
+    # Strip all whitespace and take the second line of output, which
+    # is the fingerprint, then import this at "I trust fully" level.
+    # This was a pain to figure out as gpg really wants to communicate
+    # with a tty if you do something obvious like "gpg --edit-key <id>
+    # ...".  And what is menu option number "5" is actually "6" in the
+    # ownertrust db!
+    - name: Trust key
+      shell: |
+          echo $(gpg --fingerprint {{ zj_encrypt_file.key_id }} | sed -n  "s/ //g;2 p"):6: | gpg --import-ownertrust
+
+    - name: Remove temporary keyfile
+      file:
+        path: '{{ _keyfile.path }}'
+        state: absent

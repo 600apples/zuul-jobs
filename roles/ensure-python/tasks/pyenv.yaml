@@ -1,0 +1,40 @@
+- name: Include OS-specific variables
+  include_vars: "{{ zj_distro_os }}"
+  loop_control:
+    loop_var: zj_distro_os
+  with_first_found:
+    - "{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yaml"
+    - "{{ ansible_distribution }}.{{ ansible_architecture }}.yaml"
+    - "{{ ansible_distribution }}.yaml"
+    - "{{ ansible_os_family }}.yaml"
+
+- name: Install python build depends
+  become: true
+  package:
+    name: "{{ python_build_depends }}"
+
+- name: Clone pyenv repo
+  git:
+    repo: https://github.com/pyenv/pyenv.git
+    dest: "{{ ansible_user_dir }}/.pyenv"
+    version: master
+
+# NOTE(mnaser): pyenv does not allow us to let it install Python from a specific
+#               series so we have to do some magic to find out what's the latest
+#               release from a series
+- name: Determine Python version
+  shell: |
+    set -o pipefail
+    {{ ansible_user_dir }}/.pyenv/plugins/python-build/bin/python-build --definitions | grep ^{{ python_version }} | tail -1
+  args:
+    executable: /bin/bash
+  register: _python_version
+
+# NOTE(mnaser): We install Python globally in the system, as that's somewhat
+#               similar to behaviour of installing a Python package.  It also
+#               avoids us having to mess around $PATH.
+- name: Install python
+  become: true
+  command: "{{ ansible_user_dir }}/.pyenv/plugins/python-build/bin/python-build {{ _python_version.stdout }} /usr/local"
+  environment:
+    CFLAGS: -O2

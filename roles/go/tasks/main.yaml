@@ -1,0 +1,13 @@
+- name: Require go_command variable
+  fail:
+    msg: go_command is required for this role
+  when: go_command is not defined
+
+- name: Run go command
+  command: >-
+    go {{ go_command }}
+    {% if go_package_dir is defined %}'./{{ go_package_dir }}'{% endif %}
+  args:
+    chdir: "{{ zuul_work_dir }}"
+  environment:
+    PATH: "{{ ansible_env.PATH }}:{{ go_bin_path }}"

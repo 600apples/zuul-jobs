@@ -1,0 +1,14 @@
+# This simulates a build from a previous change which appears in this
+# buildset via provides/requires.  This build should be copied from
+# the intermediate registry to the buildset registry.
+
+previous_build_repository: docker.io/upstream/image
+previous_build_uuid: 48a84fe22a744cb5b0310f396358d912
+previous_build_zuul:
+  artifacts:
+    - url: "docker://{{ intermediate_registry.host }}:{{ intermediate_registry.port }}/{{ previous_build_repository }}:{{ previous_build_uuid }}_latest"
+      metadata:
+        repository: "{{ previous_build_repository }}"
+        tag: latest
+        type: container_image
+  executor: "{{ zuul.executor }}"

@@ -1,0 +1,4 @@
+ensure_rust_rustup: true
+ensure_rust_packages: false
+ensure_rust_rustup_toolchain: stable
+ensure_rust_rustup_path: /opt/rust

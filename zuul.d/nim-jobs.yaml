@@ -1,0 +1,22 @@
+- job:
+    name: nimble
+    parent: unittests
+    description: |
+      Base job for nim operations
+
+      Responds to these variables:
+
+        ..zuul:jobvar:: nimble_command
+           :default: build
+
+        .. zuul:jobvar:: nim_version
+           :default: stable
+
+           The version of nim to use.
+
+        .. zuul:jobvar:: zuul_work_dir
+           ::default: {{ zuul.project.src_dir }}
+
+           Path to operate in.
+    pre-run: playbooks/nimble/pre.yaml
+    run: playbooks/nimble/run.yaml

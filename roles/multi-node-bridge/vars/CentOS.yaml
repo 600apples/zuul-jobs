@@ -1,0 +1,8 @@
+---
+ovs_package: >-
+  {% if ansible_distribution_major_version|int >= 8 -%}
+  rhosp-openvswitch
+  {%- else -%}
+  openvswitch
+  {%- endif %}
+ovs_service: "openvswitch"

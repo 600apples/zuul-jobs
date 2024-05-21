@@ -1,0 +1,16 @@
+---
+- name: Install test
+  shell: |
+    set -o pipefail
+    yes | phoronix-test-suite install {{ ' '.join(phoronix_test_suites) }}
+  args:
+    executable: /bin/bash
+  register: _phoronix_cmd
+  failed_when: _phoronix_cmd.rc != 141
+
+- name: Run test
+  shell: |
+    set -o pipefail
+    yes | phoronix-test-suite batch-run {{ ' '.join(phoronix_test_suites) }}
+  register: _phoronix_cmd
+  failed_when: _phoronix_cmd.rc != 141

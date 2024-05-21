@@ -1,0 +1,7 @@
+hashicorp_releases_fqdn: https://releases.hashicorp.com
+packer_version: 1.5.5
+packer_install_dir: "{{ ansible_user_dir  }}/.local/bin/"
+packer_os: "{{ ansible_system | lower }}"
+packer_arch: "{{ packer_arch_translation[ansible_architecture] }}"
+packer_package: "packer_{{ packer_version }}_{{ packer_os }}_{{ packer_arch }}"
+packer_executable: "{{ ansible_user_dir }}/.local/bin/packer"

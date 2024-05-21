@@ -1,0 +1,16 @@
+ensure_kubernetes_type: minikube
+# Pin to 1.28 until https://github.com/canonical/microk8s/issues/4361
+# is fixed.
+ensure_kubernetes_microk8s_channel: '1.28/stable'
+# NOTE(ianw) : 2022-12-13
+#  - "storage" is deprecated and has become "hostpath-storage" in
+#     >1.24, but we still need to support 1.23.  If it really goes away
+#     we might need to switch on the channel name
+ensure_kubernetes_microk8s_addons:
+  - dns
+  - storage
+install_kubernetes_with_cluster: True
+minikube_version: latest
+minikube_dns_resolvers: []
+ensure_kubernetes_minikube_addons: []
+kubernetes_runtime: docker

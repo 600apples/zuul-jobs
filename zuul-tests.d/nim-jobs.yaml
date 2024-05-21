@@ -1,0 +1,25 @@
+- job:
+    name: zuul-jobs-test-nimble
+    parent: nimble
+    description: Test the nimble job
+    # This job does not work.  Abstract is set to true so that the
+    # autogenerator doesn't run it.  If you fix this job, remove this
+    # line.
+    abstract: true
+    files:
+      - playbooks/nimble
+      - roles/ensure-nimble
+      - roles/nimble
+      - test-playbooks/nimble
+    vars:
+      zuul_work_dir: '{{ zuul.project.src_dir }}/test-playbooks/nimble'
+      nimble_siblings:
+        - '{{ zuul.project.src_dir }}/test-playbooks/nimble/sibling'
+
+- project:
+    check:
+      jobs: &id001 []
+    gate:
+      jobs: *id001
+    periodic-weekly:
+      jobs: *id001

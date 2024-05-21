@@ -1,0 +1,57 @@
+- job:
+    name: packer
+    description: |
+      Base job for packer operations
+
+      Responds to these variables:
+
+      .. zuul:jobvar:: packer_command
+         :default: build
+
+         Command to pass to packer.
+
+      .. zuul:jobvar:: packer_variables
+
+         Dictionary with variables to pass to packer.
+
+      .. zuul:jobvar:: packer_extra_args
+         :default: ""
+
+         String containing extra arguments to append to the packer command line.
+
+      .. zuul:jobvar:: packer_environemnt
+
+         Environment variables to set in packer command.
+
+      .. zuul:jobvar:: packer_template
+         :default: packer.json
+
+         Packer template json file to use.
+
+      .. zuul:jobvar:: packer_install_dir
+         :default: {{ ansible_user_dir }}/packer/
+
+         Path to install packer in.
+
+      .. zuul:jobvar:: packer_version
+         :default: 1.5.5
+
+         The version of packer to use.
+
+      .. zuul:jobvar:: packer_os
+         :default: {{ ansible_system | lower }}
+
+          OS to use when choosing packer version.
+
+      .. zuul:jobvar:: packer_arch
+         :default: amd64 / 386
+
+          Architecture to use when choosing packer version
+
+      .. zuul:jobvar:: zuul_work_dir
+         :default: {{ zuul.project.src_dir }}
+
+         Path to operate in.
+
+    pre-run: playbooks/packer/pre.yaml
+    run: playbooks/packer/run.yaml

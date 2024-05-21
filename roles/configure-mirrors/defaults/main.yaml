@@ -1,0 +1,14 @@
+set_apt_mirrors_trusted: False
+mirror_fqdn: "{{ zuul_site_mirror_fqdn | default(omit) }}"
+pypi_fqdn: "{{ mirror_fqdn }}"
+mirror_use_ssl: False
+http_or_https: >-
+  {%- if mirror_use_ssl and ansible_distribution_release not in ['xenial', 'stretch'] -%}
+  https
+  {%- else -%}
+  http
+  {%- endif -%}
+pypi_mirror: "{{ http_or_https }}://{{ pypi_fqdn }}/pypi/simple"
+wheel_mirror: "{{ http_or_https }}://{{ mirror_fqdn }}/wheel/{{ ansible_distribution | lower }}-{{ ansible_distribution_version }}-{{ ansible_architecture | lower }}"
+enable_deb_src_repos: False
+configure_mirrors_extra_repos: True

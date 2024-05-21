@@ -1,0 +1,28 @@
+- name: Slurp it
+  slurp:
+    path: "{{ intercept_job_pub_key_path }}"
+  register: intercept_key
+
+- name: Add to current user
+  authorized_key:
+    key: "{{ intercept_key.content | b64decode }}"
+    user: "{{ ansible_user }}"
+
+- name: Inform user of connection details
+  debug:
+    msg: "ssh {{ ansible_ssh_user }}@{{ ansible_ssh_host }}"
+
+- name: Copy waiter script
+  copy:
+    src: waiter.sh
+    dest: ./waiter.sh
+    mode: "0755"
+
+- name: Start waiter task
+  command: ./waiter.sh {{ intercept_job_stop_path }}
+
+- name: Remove key from current user
+  authorized_key:
+    key: "{{ intercept_key.content | b64decode }}"
+    user: "{{ ansible_user }}"
+    state: absent

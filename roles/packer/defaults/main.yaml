@@ -1,0 +1,6 @@
+packer_command: build
+packer_executable: "{{ ansible_user_dir }}/.local/bin/packer"
+packer_workdir: "{{ zuul.project.src_dir }}"
+packer_template: "packer.json"
+packer_extra_args: ""
+packer_environment: {}

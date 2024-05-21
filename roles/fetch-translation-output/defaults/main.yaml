@@ -1,0 +1,5 @@
+---
+zuul_executor_dest: "{{ zuul.executor.work_root }}/artifacts"
+translation_output_src: "src/{{ zuul.project.canonical_name }}/translation-source/"
+zuul_output_dir: "{{ ansible_user_dir }}/zuul-output"
+zuul_use_fetch_output: "{{ zuul_site_use_fetch_output | default(false) }}"

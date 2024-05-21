@@ -1,0 +1,236 @@
+- name: Check for Minikube install
+  stat:
+    path: /tmp/minikube
+  register: stat_result
+
+- name: Download Minikube
+  get_url:
+    url: https://storage.googleapis.com/minikube/releases/{{ minikube_version }}/minikube-linux-amd64
+    dest: /tmp/minikube
+    mode: 0755
+  when: not stat_result.stat.exists
+
+- name: Install kubectl as minikube
+  become: true
+  file:
+    src: /tmp/minikube
+    dest: /usr/local/bin/kubectl
+    state: link
+
+- name: Run ensure-docker role
+  include_role:
+    name: ensure-docker
+
+# Ubuntu focal doesn't have cri-o-1.15 packages, per distro tasks is
+# required to install crio
+- name: Install crio
+  # Note this is required even for the docker runtime, as minikube only
+  # supports cri now.  See below for the docker wrapper
+  include_tasks: "{{ zj_distro_os }}"
+  with_first_found:
+    - "crio-{{ ansible_distribution }}-{{ ansible_distribution_version }}.yaml"
+    - "crio-default.yaml"
+  loop_control:
+    loop_var: zj_distro_os
+
+- name: Workaround missing 02-crio.conf
+  # See: https://github.com/kubernetes/minikube/issues/13816
+  block:
+    - name: Add misisng crio.conf.d folder
+      file:
+        path: /etc/crio/crio.conf.d
+        state: directory
+        mode: 0755
+      become: true
+    - name: Fix missing 02-crio.conf
+      copy:
+        content: |
+          [crio.image]
+          # pause_image = ""
+
+          [crio.network]
+          # cni_default_network = ""
+
+          [crio.runtime]
+          # cgroup_manager = ""
+        dest: /etc/crio/crio.conf.d/02-crio.conf
+        mode: 0644
+      become: true
+
+- name: Create .kube directory
+  file:
+    path: "{{ ansible_user_dir }}/.kube"
+    state: directory
+    mode: 0755
+
+- name: Create .kube/config file
+  file:
+    path: "{{ ansible_user_dir }}/.kube/config"
+    state: touch
+    mode: 0644
+
+- name: Create .minikube directory
+  file:
+    path: "{{ ansible_user_dir }}/.minikube"
+    state: directory
+    mode: 0755
+
+- name: Default args
+  set_fact:
+    extra_args: ""
+
+- name: Configure dns options if set
+  when: minikube_dns_resolvers|length>0
+  block:
+    - name: Write resolv.conf
+      template:
+        src: resolv.conf.j2
+        dest: "{{ ansible_user_dir }}/.minikube/k8s_resolv.conf"
+        mode: "0444"
+    - name: Set extra kube setttings
+      set_fact:
+        extra_args: "--extra-config=kubelet.resolv-conf={{ ansible_user_dir }}/.minikube/k8s_resolv.conf"
+
+# See https://github.com/kubernetes/minikube/issues/14410
+- name: Setup cri-dockerd
+  when: kubernetes_runtime == 'docker'
+  become: yes
+  block:
+    - name: Check for pre-existing cri-docker service
+      stat:
+        path: '/etc/system/cri-docker.service'
+      register: _cri_docker
+
+    - name: Install cri-docker
+      when: not _cri_docker.stat.exists
+      shell: |
+          set -x
+          VER=$(curl -s https://api.github.com/repos/Mirantis/cri-dockerd/releases/latest|grep tag_name | cut -d '"' -f 4|sed 's/v//g')
+          DL=$(mktemp -d)
+          pushd ${DL}
+          wget https://github.com/Mirantis/cri-dockerd/releases/download/v${VER}/cri-dockerd-${VER}.amd64.tgz
+          tar xvf cri-dockerd-${VER}.amd64.tgz
+          mv cri-dockerd/cri-dockerd /usr/local/bin
+          wget https://raw.githubusercontent.com/Mirantis/cri-dockerd/v${VER}/packaging/systemd/cri-docker.service
+          wget https://raw.githubusercontent.com/Mirantis/cri-dockerd/v${VER}/packaging/systemd/cri-docker.socket
+          sudo mv cri-docker.socket cri-docker.service /etc/systemd/system/
+          sed -i -e 's,/usr/bin/cri-dockerd,/usr/local/bin/cri-dockerd,' /etc/systemd/system/cri-docker.service
+          popd
+          rm -rf ${DL}
+          systemctl daemon-reload
+      args:
+        executable: '/bin/bash'
+
+    # minikube has a hard-coded cri-docker setup step that writes out
+    #  /etc/systemd/system/cri-docker.service.d/10-cni.conf
+    # which overrides the ExecStart with CNI arguments.  This seems to
+    # be written to assume different packages than we have on Ubuntu
+    # Jammy -- containernetworking-plugins is a native package and is
+    # in /usr/lib, whereas the OpenSuse kubic versions are in /opt.
+    # We thus add an 11-* config to override the override with
+    # something that works ... see
+    #  https://github.com/kubernetes/minikube/issues/15320
+    - name: Correct override for native packages
+      when: ansible_distribution_release == 'jammy'
+      block:
+        - name: Make override dir
+          file:
+            state: directory
+            path: /etc/systemd/system/cri-docker.service.d
+            owner: root
+            group: root
+            mode: '0755'
+
+        - name: Override cri-docker
+          template:
+            src: 11-cri-docker-override.conf.j2
+            dest: /etc/systemd/system/cri-docker.service.d/11-cri-docker-override.conf
+            owner: root
+            group: root
+            mode: '0644'
+
+    - name: Ensure cri-dockerd running
+      service:
+        name: cri-docker
+        state: started
+
+- name: Start Minikube
+  become: yes
+  command: >-
+    /tmp/minikube start
+    --v=7
+    --vm-driver=none
+    --container-runtime={{ kubernetes_runtime }}
+    {{ extra_args }}
+    {% for _addon in ensure_kubernetes_minikube_addons %}
+    --addons={{ _addon }}
+    {% endfor %}
+    {{ '--network-plugin=cni' if kubernetes_runtime == 'cri-o' }}
+  environment:
+    MINIKUBE_WANTUPDATENOTIFICATION: false
+    MINIKUBE_WANTREPORTERRORPROMPT: false
+    MINIKUBE_WANTNONEDRIVERWARNING: false
+    MINIKUBE_WANTKUBECTLDOWNLOADMSG: false
+    CHANGE_MINIKUBE_NONE_USER: true
+    MINIKUBE_HOME: "{{ ansible_user_dir }}"
+    KUBECONFIG: "{{ ansible_user_dir }}/.kube/config"
+
+- name: Get KUBECONFIG
+  command: "kubectl config view"
+  register: kubeconfig_yaml
+
+- name: Parse KUBECONFIG YAML
+  set_fact:
+    kube_config: "{{ kubeconfig_yaml.stdout | from_yaml }}"
+
+- name: Ensure minikube config is owned by ansible_user
+  become: yes
+  loop: "{{ kube_config['users'] }}"
+  loop_control:
+    loop_var: zj_item
+  file:
+    path: "{{ zj_item['user']['client-key'] }}"
+    owner: "{{ ansible_user }}"
+
+- name: Get cluster info
+  command: kubectl cluster-info
+
+- name: Concatenate the dns resolvers
+  # This is a hack to solve a temp problem.
+  # The problem is related to the resolv conf auto-setting function of the minikube v1.10.x.
+  # Zuul uses ubound as a DNS caching, so the systemd resolv has localhost.
+  # To avoid the coreDNS loop, we specified nameservers explicitly and overrided the for the minikube.
+  # But the new version is appending the systemd resolv conf always. i.e. coreDNS loop.
+  set_fact:
+    dns_resolvers: "{{ minikube_dns_resolvers | join(' ') }}"
+  when: minikube_dns_resolvers|length>0
+
+- name: Patch coreDNS corefile with the specified dns resolvers
+  command: |
+    kubectl patch cm coredns -n kube-system --patch="
+    data:
+      Corefile: |
+        .:53 {
+            errors
+            health {
+                lameduck 5s
+            }
+            ready
+            kubernetes cluster.local in-addr.arpa ip6.arpa {
+                pods insecure
+                fallthrough in-addr.arpa ip6.arpa
+                ttl 30
+            }
+            prometheus :9153
+            forward . {{ dns_resolvers }}
+            cache 30
+            loop
+            reload
+            loadbalance
+        }"
+  when: minikube_dns_resolvers|length>0
+
+- name: Rollout coreDNS deployment
+  command: |
+    kubectl rollout restart deploy/coredns -n kube-system
+  when: minikube_dns_resolvers|length>0

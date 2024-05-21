@@ -1,0 +1,13 @@
+- name: Fail if run by an unsupported ansible version
+  fail:
+    msg: This role can only be used by ansible version 2.7 and greater.
+  when: ansible_version.full is version('2.7.0', '<')
+
+- name: Upload artifacts
+  include_tasks: upload.yaml
+  loop: "{{ upload_artifactory_manifest.artifacts }}"
+  loop_control:
+    loop_var: zj_artifact
+  when:
+    - upload_artifactory_manifest is defined
+    - "'artifacts' in upload_artifactory_manifest"

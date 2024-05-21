@@ -1,0 +1,34 @@
+- name: Make sure the role is run on Fedora
+  fail:
+    msg: "This role supports Fedora only"
+  when: "ansible_distribution != 'Fedora'"
+
+- name: Check stack version
+  command: stack --version
+  failed_when: false
+  register: _stack_version
+
+- name: Install stack
+  when: _stack_version.rc != 0
+  block:
+    # This package is somehow missing from the requirements of the
+    # published packaged copr repo.  See
+    #  https://github.com/commercialhaskell/stack/issues/5388
+    - name: Preinstall gmp-devel
+      package:
+        name: gmp-devel
+        state: present
+      become: true
+
+    - name: Install stack
+      package:
+        name: stack
+        state: present
+      become: true
+
+    - name: Upgrade stack
+      command: stack upgrade
+      become: true
+
+    - name: Setup stack LTS
+      command: "stack {% if lts_version %}--resolver {{ lts_version }}{% endif %} setup"

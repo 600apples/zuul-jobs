@@ -1,0 +1,14 @@
+- name: Get dockerhub token
+  no_log: true
+  uri:
+    url: "https://auth.docker.io/token?service=registry.docker.io&scope=repository:{{ zj_image.repository }}:pull,push"
+    user: "{{ docker_credentials.username }}"
+    password: "{{ docker_credentials.password | trim }}"
+    force_basic_auth: true
+  register: token
+
+- name: Retag image
+  loop: "{{ zj_image.tags | default(['latest']) }}"
+  loop_control:
+    loop_var: zj_image_tag
+  include_tasks: promote-retag-inner.yaml

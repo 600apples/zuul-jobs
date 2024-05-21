@@ -1,0 +1,25 @@
+- name: Run ensure-pip
+  include_role:
+    name: ensure-pip
+
+- name: Install zuul-cloner shim dependencies
+  pip:
+    name: PyYAML
+    virtualenv_command: '{{ ensure_pip_virtualenv_command }}'
+    virtualenv: '{{ fetch_zuul_cloner_virtualenv }}'
+  become: yes
+
+- name: Install zuul-cloner shim
+  template:
+    src: templates/zuul-cloner-shim.py.j2
+    dest: "{{ fetch_zuul_cloner_virtualenv }}/bin/zuul-cloner"
+    mode: 0755
+  become: yes
+
+- name: Make repositories writable so that people can hardlink
+  file:
+    path: "{{ ansible_user_dir }}/src"
+    state: directory
+    recurse: yes
+    mode: ugo+rw
+  become: yes

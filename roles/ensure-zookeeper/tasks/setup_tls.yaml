@@ -1,0 +1,38 @@
+- name: Instal openssl
+  package:
+    name: openssl
+  become: true
+
+- name: Ensure CA dir is created
+  file:
+    path: "{{ zookeeper_ca_dir }}"
+    state: directory
+    owner: "{{ ansible_user }}"
+    mode: 0755
+  become: true
+
+- name: Copy zk-ca script
+  copy:
+    src: zk-ca.sh
+    dest: "{{ zookeeper_ca_dir }}/zk-ca.sh"
+    mode: 0755
+
+- name: Copy openssl.cnf
+  copy:
+    src: openssl.cnf
+    dest: "{{ zookeeper_ca_dir }}/openssl.cnf"
+    mode: 0755
+
+- name: Render certificates
+  command: "{{ zookeeper_ca_dir }}/zk-ca.sh {{ zookeeper_ca_dir }} localhost"
+
+- name: Add CA to the configuration
+  blockinfile:
+    path: /opt/zookeeper/conf/zoo.cfg
+    block: |
+      server.1=localhost:2888:3888
+      serverCnxnFactory=org.apache.zookeeper.server.NettyServerCnxnFactory
+      secureClientPort=2281
+      ssl.keyStore.location={{ zookeeper_ca_dir }}/keystores/localhost.pem
+      ssl.trustStore.location={{ zookeeper_ca_dir }}/certs/cacert.pem
+  become: true

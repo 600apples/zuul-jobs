@@ -1,0 +1,9 @@
+- hosts: all
+  roles:
+    - role: bindep
+      bindep_profile: doc
+      bindep_dir: "{{ zuul_work_dir }}"
+    - role: ensure-sphinx
+      doc_building_extra_packages:
+        - reno
+    - revoke-sudo

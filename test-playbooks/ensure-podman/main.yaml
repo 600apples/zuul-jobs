@@ -1,0 +1,16 @@
+- hosts: all
+  vars:
+    ensure_podman_validate: true
+  roles:
+    - ensure-podman
+
+- hosts: all
+  tasks:
+
+    - name: Exercise podman
+      command: /usr/bin/podman info
+      register: output
+
+    - name: Debug output
+      debug:
+        msg: '{{ output.stdout }}'

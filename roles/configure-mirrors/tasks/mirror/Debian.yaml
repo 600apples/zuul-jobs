@@ -1,0 +1,20 @@
+- name: Install Debian repository files
+  become: yes
+  template:
+    dest: "/{{ zj_repo.repo }}"
+    group: root
+    mode: 0644
+    owner: root
+    src: "apt/{{ zj_repo.repo }}.j2"
+  with_items:
+    - repo: etc/apt/sources.list.d/default.list
+    - repo: etc/apt/sources.list.d/updates.list
+    - repo: etc/apt/sources.list.d/backports.list
+      condition: "{{ configure_mirrors_extra_repos }}"
+    - repo: etc/apt/sources.list.d/security.list
+    - repo: etc/apt/apt.conf.d/99unauthenticated
+  loop_control:
+    loop_var: zj_repo
+  when: zj_repo.condition | default(True) | bool
+  notify:
+    - Update apt cache

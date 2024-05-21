@@ -1,0 +1,4 @@
+- name: Install skopeo (RedHat)
+  become: true
+  package:
+    name: skopeo

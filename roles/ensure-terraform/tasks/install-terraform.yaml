@@ -1,0 +1,76 @@
+- name: Check if unzip is installed
+  command: unzip -v  # noqa command-instead-of-module
+  failed_when: false
+  register: _unzip_probe
+
+- name: Install unzip
+  when: _unzip_probe.rc != 0
+  package:
+    name: unzip
+  become: yes
+
+- name: Get terraform checksums
+  uri:
+    url: "{{ hashicorp_releases_fqdn }}/\
+          terraform/{{ terraform_version }}/terraform_{{ terraform_version }}_SHA256SUMS"
+    return_content: true
+  register: terraform_version_checksums
+
+- name: Set terraform checksum
+  set_fact:
+    terraform_checksum: "{{ \
+        terraform_version_checksums.content | \
+        regex_search( '[a-z0-9]+  ' + terraform_package) | \
+        regex_replace( '(?P<checksum>[a-z0-9]+)  ' + terraform_package, '\\g<checksum>')
+      }}"
+
+- name: Create temp directory
+  tempfile:
+    state: directory
+  register: terraform_install_tempdir
+
+- name: Download terraform archive
+  get_url:
+    url: "{{ hashicorp_releases_fqdn }}/\
+      terraform/{{ terraform_version }}/{{ terraform_package }}.zip"
+    dest: "{{ terraform_install_tempdir.path }}/{{ terraform_package }}.zip"
+    checksum: "sha256:{{ terraform_checksum }}"
+
+- name: Create terraform package directory
+  file:
+    path: "{{ terraform_install_tempdir.path }}/{{ terraform_package }}"
+    state: directory
+    mode: 0755
+
+- name: Unarchive terraform
+  unarchive:
+    src: "{{ terraform_install_tempdir.path }}/{{ terraform_package }}.zip"
+    dest: "{{ terraform_install_tempdir.path }}/{{ terraform_package }}"
+    remote_src: yes
+
+- name: Make sure installation directory exists
+  file:
+    path: "{{ terraform_install_dir }}"
+    state: directory
+    mode: 0755
+
+- name: Install terraform
+  copy:
+    src: "{{ terraform_install_tempdir.path }}/{{ terraform_package }}/terraform"
+    dest: "{{ terraform_install_dir }}/terraform"
+    mode: 0755
+    owner: "{{ ansible_user }}"
+    remote_src: yes
+
+- name: Remove tempdir
+  file:
+    path: "{{ terraform_install_tempdir }}"
+    state: absent
+
+- name: Set terraform executable fact
+  set_fact:
+    terraform_executable: "{{ terraform_install_dir }}/terraform"
+    cacheable: true
+
+- name: Output terraform version
+  command: "{{ terraform_executable }} version"

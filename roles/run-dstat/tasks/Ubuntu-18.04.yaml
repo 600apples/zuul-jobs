@@ -1,0 +1,6 @@
+- name: Install dstat
+  package:
+    name: dstat
+    state: present
+  become: true
+  failed_when: false

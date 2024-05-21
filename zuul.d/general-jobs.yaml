@@ -1,0 +1,209 @@
+# Jobs listed in general-jobs.rst.
+
+- job:
+    name: dco-license
+    description: |
+      A job to validate all new commits have been signed using --signoff.
+    run: playbooks/dco-license/run.yaml
+
+- job:
+    name: unittests
+    abstract: true
+    description: |
+      Perform setup common to all unit test jobs.
+
+      This performs basic host and general project setup tasks common
+      to all types of unit test jobs.
+    pre-run: playbooks/unittests/pre.yaml
+    post-run: playbooks/unittests/post.yaml
+
+- job:
+    name: unittests-fips
+    abstract: true
+    description: |
+      Enable fips and Perform setup common to all unit test jobs.
+
+      This performs basic host and general project setup tasks common
+      to all types of unit test jobs related to fips.
+    pre-run:
+      - playbooks/enable-fips/pre.yaml
+      - playbooks/unittests/pre.yaml
+    post-run: playbooks/unittests/post.yaml
+
+- job:
+    name: multinode
+    abstract: true
+    description: |
+      Do additional setup needed for multi-node jobs such as setting up
+      overlay networks and setting up known-hosts and ssh keys
+    pre-run: playbooks/multinode/pre.yaml
+
+- job:
+    name: multinode-fips
+    abstract: true
+    description: |
+      Enable fips and do the setup needed for multi-node jobs such as setting
+      up overlay networks and setting up known-hosts and ssh keys
+    pre-run:
+      - playbooks/enable-fips/pre.yaml
+      - playbooks/multinode/pre.yaml
+
+- job:
+    name: run-test-command
+    parent: unittests
+    description: |
+      Run simple command as test.
+
+      To use this, set the ``test_command`` variable to a single command or
+      a list of commands. For complex list of commands, it is recommended to
+      use a single command that runs a proper script.
+
+      .. zuul:jobvar:: zuul_work_dir
+         :default: {{ zuul.project.src_dir }}
+
+         Path to operate in.
+    run: playbooks/run-test-command/run.yaml
+
+- job:
+    name: upload-git-mirror
+    description: |
+      Mirrors a tested project repository to a remote git server.
+
+      .. zuul:jobvar:: git_mirror_credentials
+        :type: dict
+
+        This is expected to be a Zuul Secret with these keys:
+
+        .. zuul:jobvar:: user
+
+          SSH user for the remote git repository
+
+        .. zuul:jobvar:: host
+
+          SSH host for the remote git repository
+
+        .. zuul:jobvar:: ssh_key
+
+          Literal private key contents.
+          Should start with something like ``-----BEGIN RSA PRIVATE KEY-----``.
+
+        .. zuul:jobvar:: host_key
+
+          SSH host key of the remote git server.
+          Can be obtained with ``ssh-keyscan -H <host>``.
+
+      .. zuul:jobvar:: git_mirror_repository
+
+        Path of the remote git repository
+    run: playbooks/upload-git-mirror/run.yaml
+
+- job:
+    name: validate-zone-db
+    description: |
+      Validate zone.db files in project.
+
+      Responds to these variables:
+
+      .. zuul:jobvar:: zone_files
+         :default: {{ ansible_user_dir }}/{{ zuul.project.src_dir }}
+
+         Search for zone.db files recursively in this directory.
+         Format should be domain.xyz/zone.db, where the parent
+         directory is named for the zone described.
+
+      .. zuul:jobvar:: zone_db_list
+         :default: []
+
+         Override the default searching above with explicit
+         domain/path references (see validate-zone-db role)
+    run: playbooks/validate-zone-db/run.yaml
+
+- job:
+    name: dhall-diff
+    description: |
+      Ensure that generated configuration files are idempotent.
+
+      This job runs a render command and check that no files are
+      modified.
+
+      .. zuul:jobvar:: dhall_render_command
+         :default: make
+
+         The command that render the configuration files.
+
+      .. zuul:jobvar:: dhall_version
+         :default: 1.31.1
+
+         The dhall version.
+
+    pre-run: playbooks/dhall/prepare.yaml
+    run: playbooks/dhall/diff.yaml
+
+- job:
+    name: shake-build
+    description: |
+      Run the shake build system command.
+
+      This job produces a shake.html report.
+
+      .. zuul:jobvar:: shake_target
+
+         The name of the target to build.
+
+    pre-run: playbooks/shake/pre.yaml
+    run: playbooks/shake/run.yaml
+
+- job:
+    name: zuul-tenant-conf-check
+    description: |
+      Run the zuul-admin tenant-conf-check command.
+
+      This requires a partial zuul.conf (it only needs the connection
+      entries, and those without any credential information) and a
+      tenant config file.  It will validate the syntax of the tenant
+      config file (but not the job configuration of any projects in
+      the tenants).
+
+      .. zuul:jobvar:: zuul_tenant_conf_check_zuul_conf_path
+
+         The path to the partial zuul.conf to use.  This must contain the
+         connection entries, but no credentials are required.  Any other
+         sections are ignored.
+
+      .. zuul:jobvar:: zuul_tenant_conf_check_tenant_config_path
+
+         The path to the tenant config file to check.
+
+      .. zuul:jobvar:: zuul_tenant_conf_check_image
+         :default: quay.io/zuul-ci/zuul-scheduler:latest
+
+         The Zuul scheduler container image which contains the zuul-admin
+         command to run.
+
+      .. zuul:jobvar:: zuul_tenant_conf_check_registry_credentials
+
+         An optional value, expected in the form of a secret, that supplies
+         credential information if zuul_tenant_conf_check_image is in a
+         registry that requires authentication.  The format is a dictionary
+         keyed by the registry name.  Example:
+
+         .. code-block:: yaml
+
+            zuul_tenant_conf_check_registry_credentials:
+              docker.io:
+                username: 'username'
+                password: 'password'
+
+         .. zuul:jobvar:: [registry_name]
+
+            The dictionary key should be the name of the registry
+
+            .. zuul:jobvar:: username
+
+               The registry username.
+
+            .. zuul:jobvar:: password
+
+               The registry password.
+    pre-run: playbooks/zuul-tenant-conf-check/pre.yaml
+    run: playbooks/zuul-tenant-conf-check/run.yaml

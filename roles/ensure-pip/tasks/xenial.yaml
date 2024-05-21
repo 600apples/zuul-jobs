@@ -1,0 +1,33 @@
+# Pip 8 as shipped with Xenial doesn't correctly fall back to pypi
+# when setup to point to infra mirrors.  This PPA has a backport of of
+# the Bionic 9 pip which means we ship a working environment at least.
+- name: Install backport pip
+  apt_repository:
+    repo: ppa:openstack-ci-core/python-pip
+  become: yes
+
+- name: Install Python 3 pip
+  package:
+    name:
+      - python3-pip
+      - python3-setuptools
+      - python3-venv
+      - python3-wheel
+  become: yes
+
+- name: Install Python 2 pip
+  package:
+    name:
+      - python-setuptools
+      - python-pip
+      - python-wheel
+  become: yes
+  when: ensure_pip_from_packages_with_python2
+
+# Remove the PPA to avoid exposing future job apt-get updates to ppa
+# latency.  The packages remain.
+- name: Remove backport pip repo
+  apt_repository:
+    repo: ppa:openstack-ci-core/python-pip
+    state: absent
+  become: yes

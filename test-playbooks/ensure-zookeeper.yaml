@@ -1,0 +1,10 @@
+- hosts: all
+  tasks:
+    - name: Include ensure-zookeeper
+      include_role:
+        name: ensure-zookeeper
+      vars:
+        zookeeper_use_tls: true
+
+    - name: Test zookeeper is running
+      command: /opt/zookeeper/bin/zkCli.sh ls /

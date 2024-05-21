@@ -1,0 +1,9 @@
+dhall_version: 1.31.1
+dhall_versions:
+  "1.31.1":
+    - url: https://github.com/dhall-lang/dhall-haskell/releases/download/1.31.1/dhall-1.31.1-x86_64-linux.tar.bz2
+      checksum: sha256:f8312727bbd4af74d183efce2e22f7b7807246a600fcc85600945f4790e4294a
+    - url: https://github.com/dhall-lang/dhall-haskell/releases/download/1.31.1/dhall-json-1.6.3-x86_64-linux.tar.bz2
+      checksum: sha256:7ec6b54f70f077d8876bb40633905f2a0a2c69e83a3ce0bd3d9f7577e1210489
+    - url: https://github.com/dhall-lang/dhall-haskell/releases/download/1.31.1/dhall-yaml-1.0.3-x86_64-linux.tar.bz2
+      checksum: sha256:04d95773f9e96340a29f2857a55fb718735b83596abacf1d7b9fa3f6004067cb

@@ -1,0 +1,20 @@
+- name: Check if virtualenv is installed
+  shell: |
+    command -v virtualenv || exit 1
+  args:
+    executable: /bin/bash
+  register: virtualenv_preinstalled
+  failed_when: false
+
+- name: Install virtualenv package
+  include_tasks: "{{ zj_distro_os }}"
+  with_first_found:
+    - "{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yaml"
+    - "{{ ansible_distribution_release }}.yaml"
+    - "{{ ansible_distribution }}.yaml"
+    - "{{ ansible_os_family }}.yaml"
+    - "default.yaml"
+  loop_control:
+    loop_var: zj_distro_os
+  when:
+    - virtualenv_preinstalled.rc != 0

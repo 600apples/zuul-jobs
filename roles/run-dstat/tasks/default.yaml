@@ -1,0 +1,6 @@
+- name: Install dstat
+  package:
+    name: pcp
+    state: present
+  become: true
+  failed_when: false

@@ -1,0 +1,3 @@
+openshift_pods: "{{ zuul.resources }}"
+zuul_output_dir: "{{ ansible_user_dir }}/zuul-output"
+zuul_log_verbose: false

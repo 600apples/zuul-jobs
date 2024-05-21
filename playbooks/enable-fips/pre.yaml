@@ -1,0 +1,9 @@
+- name: Enable FIPS mode
+  hosts: all
+  tasks:
+    # Enabling FIPS mode requires changes in boot procedure to provide the
+    # appropriate kernel flag. The change has effect only after system reboot.
+    - name: Enable FIPS mode and reboot node
+      include_role:
+        name: enable-fips
+      when: enable_fips | default(true)

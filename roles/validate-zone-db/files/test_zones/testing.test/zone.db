@@ -1,0 +1,18 @@
+; -*- mode: zone -*-
+$ORIGIN testing.test.
+$TTL 1h
+@			IN	SOA	adns1.testing.test. hostmaster.testing.test. (
+				1667422838  ; serial number unixtime
+				1h          ; refresh (secondary checks for updates)
+				10m         ; retry   (secondary retries failed axfr)
+				10d         ; expire  (secondary ends serving old data)
+				5m  )       ; min ttl (cache time for failed lookups)
+@			IN	NS	ns1.testing.test.
+@			IN	A	127.0.0.1
+@			IN	AAAA	::1
+
+adns1			IN	A	127.0.0.1
+adns1			IN	AAAA	::1
+
+ns1			IN	A	127.0.0.1
+ns1			IN	AAAA	::1

@@ -1,0 +1,48 @@
+- name: Install pip
+  include_role:
+    name: ensure-pip
+  vars:
+    ensure_pip_from_packages_with_python2: '{{ tox_prefer_python2 }}'
+
+- name: Check if tox is installed
+  shell: |
+    command -v {{ tox_executable }} {{ tox_venv_path }}/bin/tox || exit 1
+  args:
+    executable: /bin/bash
+  register: tox_preinstalled
+  failed_when: false
+
+- name: Export preinstalled tox_exectuable
+  set_fact:
+    tox_executable: '{{ tox_preinstalled.stdout_lines[0] }}'
+    cacheable: true
+  when: tox_preinstalled.rc == 0
+
+- name: Install tox to local env
+  when: tox_preinstalled.rc != 0
+  block:
+    - name: Create local venv
+      command: '{{ ensure_pip_virtualenv_command }} {{ tox_venv_path }}'
+
+    - name: Install tox to local venv
+      # We pin tox to version <4 as v4 is not currently compatible with
+      # zuul's tox siblings processing.
+      command: '{{ tox_venv_path }}/bin/pip install tox{{ ensure_tox_version }}'
+
+    - name: Export installed tox_executable path
+      set_fact:
+        tox_executable: '{{ tox_venv_path }}/bin/tox'
+        cacheable: true
+
+- name: Output tox version
+  command: "{{ tox_executable }} --version"
+
+- name: Make global symlink
+  when:
+    - ensure_global_symlinks
+    - tox_executable != '/usr/local/bin/tox'
+  file:
+    state: link
+    src: "{{ tox_executable }}"
+    dest: /usr/local/bin/tox
+  become: yes

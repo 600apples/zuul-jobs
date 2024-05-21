@@ -1,0 +1,10 @@
+[distutils]
+index-servers=
+  {{ pypi_repository }}
+
+[{{ pypi_repository }}]
+{% if pypi_repository_url %}
+repository:{{ pypi_repository_url }}
+{% endif %}
+username:{{ '__token__' if (pypi_info.api_token is defined) else pypi_info.username }}
+password:{{ pypi_info.api_token if (pypi_info.api_token is defined) else pypi_info.password }}

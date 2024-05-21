@@ -1,0 +1,31 @@
+- hosts: all
+  tasks:
+    - name: Success dhall-diff
+      include_role:
+        name: render-diff
+
+    - name: Ensure dhall-diff succeeded
+      assert:
+        that:
+          - render_diff.stdout | length == 0
+
+    - name: Introduce a difference
+      copy:
+        content: "44"
+        dest: "{{ zuul.project.src_dir }}/test.yaml"
+
+    - name: Commit the difference
+      command: git commit -a -m "test update"
+      args:
+        chdir: "{{ zuul.project.src_dir }}"
+
+    - name: Failed dhall-diff
+      include_role:
+        name: render-diff
+      vars:
+        diff_ignore_errors: yes
+
+    - name: Ensure dhall-diff failed
+      assert:
+        that:
+          - render_diff.stdout | length > 0

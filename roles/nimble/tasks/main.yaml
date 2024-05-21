@@ -1,0 +1,17 @@
+- name: Configure siblings
+  when: nimble_use_siblings
+  command: nimble develop
+  environment:
+    PATH: "{{ nim_path }}:{{ ansible_env.PATH }}"
+  args:
+    chdir: "{{ zj_nimble_siblings }}"
+  loop: "{{ nimble_siblings }}"
+  loop_control:
+    loop_var: zj_nimble_siblings
+
+- name: Run nimble
+  command: "nimble {{ nimble_command }} --accept"
+  args:
+    chdir: "{{ zuul_work_dir }}"
+  environment:
+    PATH: "{{ nim_path }}:{{ ansible_env.PATH }}"

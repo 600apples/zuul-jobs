@@ -1,0 +1,103 @@
+- job:
+    name: zuul-jobs-test-packer
+    parent: packer
+    description: Test packer job
+    post-run: test-playbooks/packer/post.yaml
+    tags: all-platforms
+    files:
+      - roles/ensure-packer/.*
+      - roles/packer/.*
+      - test-playbooks/packer/.*
+      - playbooks/packer/.*
+    vars:
+      packer_install_dir: '{{ ansible_user_dir }}/packer'
+      packer_template: test-playbooks/packer/packer.json
+      packer_environment:
+        PACKER_TEST_FILE: testfile
+      packer_variables:
+        packer_test_content: "abc\n"
+
+- job:
+    name: zuul-jobs-test-packer-centos-8-stream
+    description: Test packer job on centos-8-stream
+    parent: zuul-jobs-test-packer
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: centos-8-stream
+          label: centos-8-stream
+
+- job:
+    name: zuul-jobs-test-packer-centos-9-stream
+    description: Test packer job on centos-9-stream
+    parent: zuul-jobs-test-packer
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: centos-9-stream
+          label: centos-9-stream
+
+- job:
+    name: zuul-jobs-test-packer-debian-bookworm
+    description: Test packer job on debian-bookworm
+    parent: zuul-jobs-test-packer
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: debian-bookworm
+          label: debian-bookworm
+
+- job:
+    name: zuul-jobs-test-packer-debian-bullseye
+    description: Test packer job on debian-bullseye
+    parent: zuul-jobs-test-packer
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: debian-bullseye
+          label: debian-bullseye
+
+- job:
+    name: zuul-jobs-test-packer-ubuntu-bionic
+    description: Test packer job on ubuntu-bionic
+    parent: zuul-jobs-test-packer
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: ubuntu-bionic
+          label: ubuntu-bionic
+
+- job:
+    name: zuul-jobs-test-packer-ubuntu-focal
+    description: Test packer job on ubuntu-focal
+    parent: zuul-jobs-test-packer
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: ubuntu-focal
+          label: ubuntu-focal
+
+- job:
+    name: zuul-jobs-test-packer-ubuntu-jammy
+    description: Test packer job on ubuntu-jammy
+    parent: zuul-jobs-test-packer
+    tags: auto-generated
+    nodeset:
+      nodes:
+        - name: ubuntu-jammy
+          label: ubuntu-jammy
+
+- project:
+    check:
+      jobs: &id001
+        - zuul-jobs-test-packer-centos-8-stream
+        - zuul-jobs-test-packer-centos-9-stream
+        - zuul-jobs-test-packer-debian-bookworm
+        - zuul-jobs-test-packer-debian-bullseye
+        - zuul-jobs-test-packer-ubuntu-bionic
+        - zuul-jobs-test-packer-ubuntu-focal
+        - zuul-jobs-test-packer-ubuntu-jammy
+    gate:
+      jobs: *id001
+    periodic-weekly:
+      jobs: *id001

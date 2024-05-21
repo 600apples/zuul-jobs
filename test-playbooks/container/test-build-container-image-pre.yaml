@@ -1,0 +1,52 @@
+- hosts: all
+  tasks:
+    - name: Set docker_registry cacheable facts
+      set_fact:
+        cacheable: true
+        docker_registry: "localhost"
+        docker_credentials:
+          username: zuul
+          password: testpassword
+          repository: testrepo
+        container_registry_credentials:
+          localhost:
+            username: zuul
+            password: testpassword
+            repository: testrepo
+
+    - name: Install container system
+      include_role:
+        name: "ensure-{{ container_command }}"
+
+    - name: Install skopeo
+      include_role:
+        name: "ensure-skopeo"
+
+    - name: Enable insecure registries
+      block:
+        - name: Create podman configration directory
+          become: true
+          file:
+            state: directory
+            path: /etc/containers
+            mode: 0755
+
+        - name: Setup insecure registries
+          become: true
+          copy:
+            dest: /etc/containers/registries.conf
+            content: |
+              [registries.insecure]
+              registries = ['localhost']
+            mode: 0644
+      when: container_command == 'podman'
+
+    - name: Set up a publication registry to stand in for Docker Hub
+      import_tasks: ../../util-tasks/run-docker-registry.yaml
+      vars:
+        registry:
+          host: "127.0.0.1"
+          port: 80
+          username: zuul
+          password: testpassword
+        container_command: docker

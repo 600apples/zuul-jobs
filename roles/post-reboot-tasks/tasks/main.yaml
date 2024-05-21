@@ -1,0 +1,10 @@
+---
+- name: Check if node is available for ssh
+  wait_for_connection:
+
+- name: Run start-zuul-console role
+  include_role:
+    name: start-zuul-console
+
+- name: Confirm that dns is up
+  command: "nslookup -retry=60 {{ nslookup_target }}"

@@ -1,0 +1,26 @@
+- name: Collect sphinx build html
+  synchronize:
+    dest: "{{ zuul_executor_dest }}"
+    mode: pull
+    src: "{{ sphinx_output_src }}"
+    verify_host: true
+    owner: no
+    group: no
+  when: not zuul_use_fetch_output
+
+- name: Copy sphinx build html  # noqa risky-file-permissions
+  copy:
+    dest: "{{ zuul_output_dir }}/logs/"
+    src: "{{ sphinx_output_src }}"
+    remote_src: true
+  when: zuul_use_fetch_output
+
+- name: Return artifact to Zuul
+  zuul_return:
+    data:
+      zuul:
+        artifacts:
+          - name: "Docs preview site"
+            url: "html/"
+            metadata:
+              type: docs_site

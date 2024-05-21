@@ -1,0 +1,11 @@
+- name: Remove the build WinRM cert
+  when: ansible_os_family == "Windows"
+  # The script itself may succeed, but we're unable to obtain the
+  # result due to the lost credentials.
+  ignore_errors: true  # noqa ignore-errors
+  win_shell: |
+    $cert = get-childitem cert:/localmachine/root | where-object {$_.Subject -match "{{ zuul.build }}"}
+
+    get-childitem wsman:/localhost/clientcertificate | where-object {$_.Keys -match "Issuer=$($cert.Thumbprint)"} | remove-item -recurse
+
+    get-childitem cert:/localmachine/root | where-object {$_.Subject -match "{{ zuul.build }}"} | remove-item

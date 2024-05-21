@@ -1,0 +1,5 @@
+- name: Install JDK
+  package:
+    name: default-jdk-headless
+    state: present
+  become: true

@@ -1,0 +1,2 @@
+ca_dir: /etc/pki/ca-trust/source/anchors
+ca_command: update-ca-trust

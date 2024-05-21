@@ -1,0 +1,28 @@
+- hosts: all
+  pre_tasks:
+    - name: Create fake tarball
+      shell: |
+        mkdir -p {{ zuul.project.src_dir }}
+        tar czf {{ zuul.project.src_dir }}/dist.tgz /etc/os-release
+  tasks:
+    - name: Run fetch-javascript-tarball
+      import_role:
+        name: fetch-javascript-tarball
+      vars:
+        project_ver: master
+    - name: Run fetch-output
+      import_role:
+        name: fetch-output
+      when: zuul_use_fetch_output
+  post_tasks:
+    - name: Check for artifact on the test instance
+      stat:
+        path: "{{ ansible_user_dir }}/zuul-output/artifacts/zuul-jobs-latest.tar.gz"
+      register: _test_artifact
+      failed_when: not _test_artifact.stat.exists
+    - name: Check for artifact on the executor
+      stat:
+        path: "{{ zuul.executor.work_root }}/artifacts/zuul-jobs-latest.tar.gz"
+      delegate_to: localhost
+      register: _executor_artifact
+      failed_when: not _executor_artifact.stat.exists

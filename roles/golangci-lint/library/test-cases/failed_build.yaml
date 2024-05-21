@@ -1,0 +1,11 @@
+---
+workdir: src/opendev.org/vexxhost/openstack-operator
+output: |
+  level=warning msg="[runner] Can't run linter unused: buildssa: analysis skipped: errors in package: [/home/zuul/src/opendev.org/vexxhost/openstack-operator/builders/pod_metrics_endpoint.go:4:2: \"k8s.io/apimachinery/pkg/util/intstr\" imported but not used]"
+  level=warning msg="[runner] Can't run linter goanalysis_metalinter: S1009: failed prerequisites: inspect@opendev.org/vexxhost/openstack-operator/builders, isgenerated@opendev.org/vexxhost/openstack-operator/builders"
+  level=error msg="Running error: S1009: failed prerequisites: inspect@opendev.org/vexxhost/openstack-operator/builders, isgenerated@opendev.org/vexxhost/openstack-operator/builders"
+
+comments:
+  builders/pod_metrics_endpoint.go:
+    - line: 4
+      message: '"k8s.io/apimachinery/pkg/util/intstr" imported but not used'

@@ -1,0 +1,51 @@
+- hosts: all
+  name: Remove any pre-installed tox
+  tasks:
+    - name: Remove tox package with pip
+      command: pip uninstall -y tox
+      become: true
+      failed_when: false
+    - name: Remove tox package with pip3
+      command: pip3 uninstall -y tox
+      become: true
+      failed_when: false
+    - name: Verify tox is not installed
+      command: "tox --version"
+      register: result
+      failed_when: result.rc == 0
+
+- hosts: all
+  name: Test ensure-tox installs into user environment
+  tasks:
+    - name: Verify tox is not installed
+      command: "tox --version"
+      register: result
+      failed_when: result.rc == 0
+    - name: Run ensure-tox with tox not installed
+      include_role:
+        name: ensure-tox
+    - name: Verify tox_executable is set
+      assert:
+        that:
+          - tox_executable == "{{ ansible_user_dir }}/.local/tox/bin/tox"
+    - name: Verify tox is installed
+      command: "{{ tox_executable }} --version"
+      register: result
+      failed_when: result.rc != 0
+
+- hosts: all
+  name: Test ensure-tox when tox_executable is set to an already installed tox
+  tasks:
+    - name: Create a virtualenv
+      command: '{{ ensure_pip_virtualenv_command }} {{ ansible_user_dir }}/tox-venv'
+    - name: Install tox to local venv
+      command: '{{ ansible_user_dir }}/tox-venv/bin/pip install tox'
+    - name: Run ensure-tox pointing to an already installed tox
+      include_role:
+        name: ensure-tox
+      vars:
+        tox_executable: "{{ ansible_user_dir }}/tox-venv/bin/tox"
+    - name: Verify tox_executable is set to the virtualenv tox
+      assert:
+        that:
+          - tox_executable == '{{ ansible_user_dir }}/tox-venv/bin/tox'

@@ -1,0 +1,67 @@
+- name: Validate python_version value
+  assert:
+    that:
+      - (python_version|string).split(".") | length == 2
+      - (python_version|string).split(".")[0]
+      - (python_version|string).split(".")[1]
+  when: python_version is defined
+
+- name: Install python using system packages
+  when:
+    - python_version is defined
+    - not python_use_pyenv
+    - not python_use_stow
+  block:
+    - name: Install specified version of python interpreter and development files (DEB)
+      when:
+        - ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+      package:
+        name:
+          - 'python{{ python_version }}-dev'
+        state: present
+      become: yes
+
+      # Ubuntu splits out the venv package, which is really the only
+      # sane way to use a non-default-but-packaged version of python on
+      # your system (i.e. via virtual environments setup with python<v>
+      # -m venv).  Pull it in by default for python3.
+    - name: Pull in venv package
+      when:
+        - ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+        - python_version is version('3', '>')
+      package:
+        name:
+          - 'python{{ python_version }}-venv'
+        state: present
+      become: yes
+
+    - name: Install specified version of python interpreter and development files (RPM)
+      when:
+        - ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat'
+      block:
+        - name: Set default RPM package name
+          set_fact:
+            rpm_python_pkg_name: python{{ python_version | replace('.', '') }}-devel
+        - name: Set RPM package name for CentOS/RHEL 9 and Python 3.9
+          set_fact:
+            rpm_python_pkg_name: python3-devel
+          when:
+            - ansible_distribution_major_version == '9'
+            - python_version|string == '3.9'
+        - name: Install RPM package
+          package:
+            name: "{{ rpm_python_pkg_name }}"
+            state: present
+          become: yes
+
+- name: Install python using pyenv
+  when:
+    - python_version is defined
+    - python_use_pyenv
+  include_tasks: pyenv.yaml
+
+- name: Activate python using stow
+  when:
+    - python_version is defined
+    - python_use_stow
+  include_tasks: stow.yaml

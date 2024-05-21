@@ -1,0 +1,7 @@
+---
+pypi_path: "src/{{ zuul.project.canonical_name }}/dist"
+pypi_repository: "{{ pypi_info.repository | default('pypi') }}"
+pypi_repository_url: "{{ pypi_info.repository_url | default(None) }}"
+pypi_twine_executable: twine
+pypi_twine_skip_existing: false
+pypi_register_first: false

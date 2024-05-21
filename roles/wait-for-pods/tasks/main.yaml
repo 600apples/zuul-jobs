@@ -1,0 +1,40 @@
+# NOTE(mnaser): When a StatefulSet is deployed, it creates the pods one
+#               by one, which means the `kubectl wait` can race if it
+#               is ran before the other pods are created.  We instead
+#               check for all the StatefulSets here manually instead
+#               and then use the second check below to do a "confirmation"
+- name: Wait for all StatefulSets to become ready
+  block:
+    - name: Retrieve all StatefulSets
+      command: kubectl get statefulset {% if wait_for_pods_namespace is defined %}-n {{ wait_for_pods_namespace }}{% endif %} -o name
+      register: _statefulsets
+
+    - name: Ensure the number of ready replicas matches the replicas
+      shell: kubectl get {{ zj_sts_item }} {% if wait_for_pods_namespace is defined %}-n {{ wait_for_pods_namespace }}{% endif %} -ogo-template='{{ '{{' }}eq .status.replicas .status.readyReplicas{{ '}}' }}'
+      register: _is_ready
+      until: _is_ready.stdout == 'true'
+      retries: 60
+      delay: 5
+      loop: "{{ _statefulsets.stdout_lines }}"
+      loop_control:
+        loop_var: zj_sts_item
+
+# For the DaemonSet, very similar with StatefulSet
+- name: Wait for all DaemonSets to become ready
+  block:
+    - name: Retrieve all DaemonSets
+      command: kubectl get daemonset {% if wait_for_pods_namespace is defined %}-n {{ wait_for_pods_namespace }}{% endif %} -o name
+      register: _daemonsets
+
+    - name: Ensure the ready number matches the scheduled number
+      shell: kubectl get {{ zj_ds_item }} {% if wait_for_pods_namespace is defined %}-n {{ wait_for_pods_namespace }}{% endif %} -ogo-template='{{ '{{' }}eq .status.currentNumberScheduled .status.numberReady{{ '}}' }}'
+      register: _is_ready
+      until: _is_ready.stdout == 'true'
+      retries: 60
+      delay: 5
+      loop: "{{ _daemonsets.stdout_lines }}"
+      loop_control:
+        loop_var: zj_ds_item
+
+- name: Wait for all pods to become ready
+  command: kubectl wait {% if wait_for_pods_namespace is defined %}-n {{ wait_for_pods_namespace }}{% endif %} --for=condition=Ready --timeout=120s pod --all

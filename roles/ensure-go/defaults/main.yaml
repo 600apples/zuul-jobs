@@ -1,0 +1,4 @@
+go_version: "1.15.12"
+go_os: "{{ ansible_system | lower }}"
+go_arch: "{{ go_arch_translation[ansible_architecture] }}"
+go_install_dir: "/usr/local"

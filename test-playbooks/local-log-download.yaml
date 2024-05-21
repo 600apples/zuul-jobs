@@ -1,0 +1,21 @@
+- hosts: all
+  tasks:
+
+    - name: Run local-log-download role
+      include_role:
+        name: local-log-download
+      vars:
+        local_log_download_api: 'https://zuul.opendev.org/api/tenant/{{ zuul.tenant }}'
+
+  post_tasks:
+    - name: Check for download script
+      delegate_to: localhost
+      file:
+        path: "{{ zuul.executor.log_root }}/download-logs.sh"
+        state: file
+      register: download_script
+
+    - name: Validate download script
+      assert:
+        that:
+          - download_script is not changed

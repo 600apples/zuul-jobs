@@ -1,0 +1,188 @@
+[highavailability]
+name=CentOS Stream $releasever - HighAvailability
+{% if configure_mirrors_components_9_stream['highavailability'] %}
+baseurl={{ package_mirror }}/$stream/HighAvailability/$basearch/os/
+{% else %}
+metalink=https://mirrors.centos.org/metalink?repo=centos-highavailability-$stream&arch=$basearch&protocol=https,http
+{% endif %}
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+gpgcheck=1
+repo_gpgcheck=0
+metadata_expire=6h
+countme=1
+enabled=0
+
+[highavailability-debug]
+name=CentOS Stream $releasever - HighAvailability - Debug
+{% if configure_mirrors_components_9_stream['highavailability-debug'] %}
+baseurl={{ package_mirror }}/$stream/HighAvailability/%basearch/debug/
+{% else %}
+metalink=https://mirrors.centos.org/metalink?repo=centos-highavailability-debug-$stream&arch=$basearch&protocol=https,http
+{% endif %}
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+gpgcheck=1
+repo_gpgcheck=0
+metadata_expire=6h
+enabled=0
+
+[highavailability-source]
+name=CentOS Stream $releasever - HighAvailability - Source
+{% if configure_mirrors_components_9_stream['highavailability-source'] %}
+baseurl={{ package_mirror }}/$stream/HighAvailability/%basearch/source/
+{% else %}
+metalink=https://mirrors.centos.org/metalink?repo=centos-highavailability-source-$stream&arch=source&protocol=https,http
+{% endif %}
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+gpgcheck=1
+repo_gpgcheck=0
+metadata_expire=6h
+enabled=0
+
+[nfv]
+name=CentOS Stream $releasever - NFV
+{% if configure_mirrors_components_9_stream['nfv'] %}
+baseurl={{ package_mirror }}/$stream/NFV/$basearch/os/
+{% else %}
+metalink=https://mirrors.centos.org/metalink?repo=centos-nfv-$stream&arch=source&protocol=https,http
+{% endif %}
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+gpgcheck=1
+repo_gpgcheck=0
+metadata_expire=6h
+countme=1
+enabled=0
+
+[nfv-debug]
+name=CentOS Stream $releasever - NFV - Debug
+{% if configure_mirrors_components_9_stream['nfv-debug'] %}
+baseurl={{ package_mirror }}/$stream/NFV/$basearch/debug/
+{% else %}
+metalink=https://mirrors.centos.org/metalink?repo=centos-nfv-debug-$stream&arch=$basearch&protocol=https,http
+{% endif %}
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+gpgcheck=1
+repo_gpgcheck=0
+metadata_expire=6h
+enabled=0
+
+[nfv-source]
+name=CentOS Stream $releasever - NFV - Source
+{% if configure_mirrors_components_9_stream['nfv-source'] %}
+baseurl={{ package_mirror }}/$stream/NFV/$basearch/debug/
+{% else %}
+metalink=https://mirrors.centos.org/metalink?repo=centos-nfv-source-$stream&arch=source&protocol=https,http
+{% endif %}
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+gpgcheck=1
+repo_gpgcheck=0
+metadata_expire=6h
+enabled=0
+
+[rt]
+name=CentOS Stream $releasever - RT
+{% if configure_mirrors_components_9_stream['rt'] %}
+baseurl={{ package_mirror }}/$stream/RT/$basearch/os/
+{% else %}
+metalink=https://mirrors.centos.org/metalink?repo=centos-rt-$stream&arch=$basearch&protocol=https,http
+{% endif %}
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+gpgcheck=1
+repo_gpgcheck=0
+metadata_expire=6h
+countme=1
+enabled=0
+
+[rt-debug]
+name=CentOS Stream $releasever - RT - Debug
+{% if configure_mirrors_components_9_stream['rt-debug'] %}
+baseurl={{ package_mirror }}/$stream/RT/$basearch/debug/
+{% else %}
+metalink=https://mirrors.centos.org/metalink?repo=centos-rt-debug-$stream&arch=$basearch&protocol=https,http
+{% endif %}
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+gpgcheck=1
+repo_gpgcheck=0
+metadata_expire=6h
+enabled=0
+
+[rt-source]
+name=CentOS Stream $releasever - RT - Source
+{% if configure_mirrors_components_9_stream['rt-source'] %}
+baseurl={{ package_mirror }}/$stream/RT/$basearch/source/
+{% else %}
+metalink=https://mirrors.centos.org/metalink?repo=centos-rt-source-$stream&arch=source&protocol=https,http
+{% endif %}
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+gpgcheck=1
+repo_gpgcheck=0
+metadata_expire=6h
+enabled=0
+
+[resilientstorage]
+name=CentOS Stream $releasever - ResilientStorage
+{% if configure_mirrors_components_9_stream['resilientstorage'] %}
+baseurl={{ package_mirror }}/$stream/ResilientStorage/$basearch/os/
+{% else %}
+metalink=https://mirrors.centos.org/metalink?repo=centos-resilientstorage-$stream&arch=$basearch&protocol=https,http
+{% endif %}
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+gpgcheck=1
+repo_gpgcheck=0
+metadata_expire=6h
+countme=1
+enabled=0
+
+[resilientstorage-debug]
+name=CentOS Stream $releasever - ResilientStorage - Debug
+{% if configure_mirrors_components_9_stream['resilientstorage-debug'] %}
+baseurl={{ package_mirror }}/$stream/ResilientStorage/$basearch/debug/
+{% else %}
+metalink=https://mirrors.centos.org/metalink?repo=centos-resilientstorage-debug-$stream&arch=$basearch&protocol=https,http
+{% endif %}
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+gpgcheck=1
+repo_gpgcheck=0
+metadata_expire=6h
+enabled=0
+
+[resilientstorage-source]
+name=CentOS Stream $releasever - ResilientStorage - Source
+{% if configure_mirrors_components_9_stream['resilientstorage-source'] %}
+baseurl={{ package_mirror }}/$stream/ResilientStorage/$basearch/source/
+{% else %}
+metalink=https://mirrors.centos.org/metalink?repo=centos-resilientstorage-source-$stream&arch=source&protocol=https,http
+{% endif %}
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+gpgcheck=1
+repo_gpgcheck=0
+metadata_expire=6h
+enabled=0
+
+[extras-common]
+name=CentOS Stream $releasever - Extras packages
+{% if configure_mirrors_components_9_stream['extras-common'] %}
+metalink=https://mirrors.centos.org/metalink?repo=centos-extras-sig-extras-common-$stream&arch=$basearch&protocol=https,http
+{% else %}
+baseurl={{ package_mirror }}/SIGs/$stream/extras/$basearch/extras-common/
+{% endif %}
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-SIG-Extras-SHA512
+gpgcheck=1
+repo_gpgcheck=0
+metadata_expire=6h
+countme=1
+enabled=1
+
+[extras-common-source]
+name=CentOS Stream $releasever - Extras packages - Source
+{% if configure_mirrors_components_9_stream['extras-common'] %}
+baseurl={{ package_mirror }}/SIGs/$stream/extras/source/extras-common/
+{% else %}
+metalink=https://mirrors.centos.org/metalink?repo=centos-extras-sig-extras-common-source-$stream&arch=source&protocol=https,http
+{% endif %}
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-SIG-Extras-SHA512
+gpgcheck=1
+repo_gpgcheck=0
+metadata_expire=6h
+enabled=0
+
+

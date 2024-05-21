@@ -1,0 +1,22 @@
+- name: Set ownership of /opt
+  become: true
+  file:
+    path: /opt
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: 0755
+- name: Clone devstack
+  git:
+    repo: https://opendev.org/openstack/devstack
+    dest: /opt/devstack
+    version: master
+- name: Write local.conf
+  template:
+    dest: /opt/devstack/local.conf
+    src: local.conf.j2
+    mode: 0644
+- name: Run devstack
+  command: ./stack.sh
+  args:
+    chdir: /opt/devstack

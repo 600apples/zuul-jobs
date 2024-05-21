@@ -1,0 +1,9 @@
+- name: Require bazel_build_target variable
+  fail:
+    msg: bazel_build_target is required for this role
+  when: bazel_build_target is not defined
+
+- name: Build bazel
+  command: bazel build {{ bazel_build_target }}
+  args:
+    chdir: '{{ zuul_work_dir }}'

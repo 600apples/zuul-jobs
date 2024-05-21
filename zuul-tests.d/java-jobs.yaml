@@ -1,0 +1,16 @@
+- job:
+    name: zuul-jobs-test-ensure-java
+    description: Test the ensure-java role
+    files:
+      - roles/ensure-java/.*
+      - test-playbooks/ensure-java.yaml
+    run: test-playbooks/ensure-java.yaml
+
+- project:
+    check:
+      jobs: &id001
+        - zuul-jobs-test-ensure-java
+    gate:
+      jobs: *id001
+    periodic-weekly:
+      jobs: *id001

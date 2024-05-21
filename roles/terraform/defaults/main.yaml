@@ -1,0 +1,7 @@
+terraform_executable: "{{ ansible_user_dir }}/.local/bin/terraform"
+terraform_extra_args: ""
+terraform_plan: ""
+terraform_create_workspace: false
+terraform_purge_workspace: false
+terraform_comment: true
+zuul_work_dir: "{{ zuul.project.src_dir }}"

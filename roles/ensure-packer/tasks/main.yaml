@@ -1,0 +1,11 @@
+- name: Check installed packer version
+  command: "{{ packer_executable }} version"
+  register: packer_installed_version
+  failed_when: false
+
+- name: Install packer
+  include_tasks: install-packer.yaml
+  when:
+    - packer_installed_version.rc != 0 or
+      "packer_version != (packer_installed_version.msg | \
+       regex_replace(packer_version_pattern, '\\g<version>'))"

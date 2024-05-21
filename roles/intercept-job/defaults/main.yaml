@@ -1,0 +1,2 @@
+intercept_job_stop_path: "{{ zuul.project.src_dir }}/intercept_job.stop"
+intercept_job_pub_key_path: "{{ zuul.project.src_dir }}/intercept_job.pub"

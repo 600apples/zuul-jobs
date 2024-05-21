@@ -1,0 +1,49 @@
+- name: Create temp WinRM cert
+  command: "openssl req -x509 -newkey rsa:2048 -keyout {{ zuul_temp_winrm_key }} -out {{ zuul_temp_winrm_cert }} -days 365 -nodes -subj '/C=US/ST=California/L=Oakland/O=Company Name/OU=Org/CN={{ zuul.build }}' -addext 'subjectAltName = otherName:1.3.6.1.4.1.311.20.2.3;UTF8:{{ build_winrm_cert_credentials.username }}' -addext 'keyUsage = digitalSignature,keyEncipherment'"
+  delegate_to: localhost
+  run_once: true
+
+- name: Export temp WinRM cert
+  command: "openssl pkcs12 -export -inkey {{ zuul_temp_winrm_key }} -in {{ zuul_temp_winrm_cert }} -out {{ zuul_temp_winrm_pfx }} -passout pass:{{ zuul_temp_winrm_password }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: Change password
+  when: build_winrm_cert_change_password
+  win_shell: |
+    net user {{ build_winrm_cert_credentials.username }} "{{ build_winrm_cert_credentials.password }}"
+
+- name: Copy temp WinRM cert
+  when: ansible_os_family == "Windows"
+  win_copy:
+    src: "{{ zuul_temp_winrm_pfx }}"
+    dest: "{{ zuul_temp_winrm_remote_tempfile }}"
+
+- name: Import temp WinRM cert
+  when: ansible_os_family == "Windows"
+  win_shell: |
+    $cert = Import-PfxCertificate -FilePath {{ zuul_temp_winrm_remote_tempfile }} -CertStoreLocation Cert:\LocalMachine\root -Password (ConvertTo-SecureString -AsPlainText -String "{{ zuul_temp_winrm_password }}" -Force)
+
+    rm {{ zuul_temp_winrm_remote_tempfile }}
+
+    $password = ConvertTo-SecureString -AsPlainText -String "{{ build_winrm_cert_credentials.password }}" -Force
+
+    $cred = new-object -typename System.Management.Automation.PSCredential -argumentlist {{ build_winrm_cert_credentials.username }}, $password
+
+    New-Item -Path WSMan:\localhost\ClientCertificate -Subject {{ build_winrm_cert_credentials.username }} -URI * -Issuer $($cert.Thumbprint) -Force -Credential $cred
+
+- name: Update WinRM key location
+  when: ansible_os_family == "Windows"
+  set_fact:
+    cacheable: true
+    ansible_winrm_cert_key_pem: "{{ zuul_temp_winrm_key }}"
+    ansible_winrm_cert_pem: "{{ zuul_temp_winrm_cert }}"
+    # These are likely already set to these values, but set them here
+    # anyway to future-proof against potential changes in the executor
+    # to support more initial connection methods.
+    ansible_winrm_transport: certificate
+    ansible_winrm_server_cert_validation: ignore
+
+- name: Verify we can still connect to all nodes
+  when: ansible_os_family == "Windows"
+  win_ping:

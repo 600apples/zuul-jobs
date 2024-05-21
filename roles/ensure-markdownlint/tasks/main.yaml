@@ -1,0 +1,4 @@
+- name: Install markdownlint-cli
+  npm:
+    name: markdownlint-cli
+    path: ~/.markdownlint

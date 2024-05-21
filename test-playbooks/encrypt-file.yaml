@@ -1,0 +1,177 @@
+- hosts: all
+  tasks:
+
+    - name: Make a fake file
+      tempfile:
+        state: file
+      register: _tempfile
+
+    - name: Add some data
+      copy:
+        content: 'Hello, I am encrypted'
+        dest: '{{ _tempfile.path }}'
+
+    - name: Setup encryption variables
+      set_fact:
+        encrypt_file_keys:
+          - name: 'zuul-jobs-test-1'
+            key_id: '0xD0A3C69F209B3B8E'
+            gpg_asc: |
+                -----BEGIN PGP PUBLIC KEY BLOCK-----
+
+                mDMEYgxZHhYJKwYBBAHaRw8BAQdAl9ZJaMvAc4kcO2mWFCZ5Em0xl7kRc3QYgtg0
+                +98sqoO0EHp1dWwtam9icy10ZXN0LTGIlAQTFgoAPBYhBKNWMSQoy8kXXIv/T9Cj
+                xp8gmzuOBQJiDFkeAhsDBQsJCAcCAyICAQYVCgkICwIEFgIDAQIeBwIXgAAKCRDQ
+                o8afIJs7jqlUAQCVxaINjS5/rd1oCAp19lHrscMhFmQBOtxyU7CTDoCrCAEAh9mH
+                scfOGRWhxiwg0+dXe6RE/C3Kk13kdN8pfTOIGA24OARiDFkeEgorBgEEAZdVAQUB
+                AQdAl53uFFzrhnTTmq0YbDRtQ5KrMJYYNahImPzzrvVajW4DAQgHiHgEGBYKACAW
+                IQSjVjEkKMvJF1yL/0/Qo8afIJs7jgUCYgxZHgIbDAAKCRDQo8afIJs7jqE7AP9M
+                LRe/tJ+SeHexDI1m9tmo6xcID7UOJW8eIuuwi3kjZgEAl+WqJfqjBxJmBWIjTZcV
+                zA2T4i8ViORhXLo0oohQVwE=
+                =/liI
+                -----END PGP PUBLIC KEY BLOCK-----
+
+          - name: 'zuul-jobs-test-2'
+            key_id: '0x4E1BA7A3AB674E6F'
+            gpg_asc: |
+                -----BEGIN PGP PUBLIC KEY BLOCK-----
+
+                mDMEYgxZkRYJKwYBBAHaRw8BAQdA1/5ta4i1G+NGqRWtlFuzZUmDHZP5uMt1gguX
+                WcXfoGW0EHp1dWwtam9icy10ZXN0LTKIlAQTFgoAPBYhBN0G/+apoMfgIYAX404b
+                p6OrZ05vBQJiDFmRAhsDBQsJCAcCAyICAQYVCgkICwIEFgIDAQIeBwIXgAAKCRBO
+                G6ejq2dOb4BkAQDoHczJaUH0LRgZUE+tkxhyqYY7kevX65vxe6vAqFci1gD/VvtA
+                lYrnQPqGG1GqRqy7cIsCfnI5lzAlL2Q2tYdO6A24OARiDFmREgorBgEEAZdVAQUB
+                AQdAZsFeMnJ7FGzNXf2SbGrVvYjgX397PaY6xAQoFWe4IQQDAQgHiHgEGBYKACAW
+                IQTdBv/mqaDH4CGAF+NOG6ejq2dObwUCYgxZkQIbDAAKCRBOG6ejq2dOb0t2AP9b
+                6Lv4BKjblZOhxJbsB9qvQbeyYunCLP07lSHBEhggNQEA+Luzhn3uitf4lyNbv6cS
+                9p2BPtxrLR4Ab20opteZ7w0=
+                =is5k
+                -----END PGP PUBLIC KEY BLOCK-----
+
+          - name: 'zuul-jobs-test-3'
+            key_id: '0FDF4D29F272F75A'
+            gpg_asc: |
+                -----BEGIN PGP PUBLIC KEY BLOCK-----
+
+                mDMEYgxZmxYJKwYBBAHaRw8BAQdAVUbvG30ucCb6ztQ/iuis7fX5FXssxSfbl/n8
+                vl/gyse0EHp1dWwtam9icy10ZXN0LTOIlAQTFgoAPBYhBHfjn1eq18PQIZ3qNA/f
+                TSnycvdaBQJiDFmbAhsDBQsJCAcCAyICAQYVCgkICwIEFgIDAQIeBwIXgAAKCRAP
+                300p8nL3WqgFAQCNhAEx7yC7UMV81IhiWMCDLK66eeHF16CiqPMabwlOEAD/V1cQ
+                NYCJekbq8GEcB3i36yIMPJokrPmXf6mkebs6vA24OARiDFmbEgorBgEEAZdVAQUB
+                AQdAPGKpDC3HpbRCJYkMzwY2NybY+/+G1beIjlDjpaxf/mIDAQgHiHgEGBYKACAW
+                IQR3459XqtfD0CGd6jQP300p8nL3WgUCYgxZmwIbDAAKCRAP300p8nL3WlQpAQC1
+                qwAAr63kwKKszAN+J32EGSaXp+dsR04367XacSJ3aQD/Tu6q45tF0t4G0dQIpzxT
+                jnHN/zEM7eyW45Jf/V8migI=
+                =CRYD
+                -----END PGP PUBLIC KEY BLOCK-----
+
+          # NOTE(ianw): This key expires 2106-01-01 which is the
+          # maximum I seem to be able to convince gpg to do ATM.
+          # Someone else will have to regenerate it then because I am
+          # not likely to be available to do it.
+          - name: 'zuul-jobs-test-4'
+            key_id: '4A8C7A2A7E55816E'
+            gpg_asc: |
+               -----BEGIN PGP PUBLIC KEY BLOCK-----
+
+               mDMEYg9K5BYJKwYBBAHaRw8BAQdAIIezhOWTs9ggMpfePn/6B5sNY5/Bn9CguDcy
+               gKrjoIC0EHp1dWwtam9icy10ZXN0LTSImgQTFgoAQhYhBJZPfDNqTyma/Ekg0kqM
+               eip+VYFuBQJiD0rkAhsDBQmdv6CsBQsJCAcCAyICAQYVCgkICwIEFgIDAQIeBwIX
+               gAAKCRBKjHoqflWBbnOPAP9kJgpMbHh83haH7o+O1jJTbsW9XVX7Aq196ZbEiUhx
+               5QD9FFfKnDQ7q8XX6rOK6joLG9Cq8pX5q6tSouqygKKicQm4OARiD0rkEgorBgEE
+               AZdVAQUBAQdAJ2oXpzmh5vUKhWr7PCT6y4nhIcs9bdnKFiIWfEinGVMDAQgHiHgE
+               GBYKACAWIQSWT3wzak8pmvxJINJKjHoqflWBbgUCYg9K5AIbDAAKCRBKjHoqflWB
+               btm1AQC+lvLW8iLbsKde5cqHlGAKgY7KPi5BKxSCzwdRuX3qGAEAvFKGNoEjmUzF
+               7SUjadUXXizJoeJ9feocDzfBiaH53w8=
+               =XCeq
+               -----END PGP PUBLIC KEY BLOCK-----
+
+    - name: Encrypt file
+      include_role:
+        name: encrypt-file
+      vars:
+        encrypt_file: '{{ _tempfile.path }}'
+        encrypt_file_recipients:
+          - zuul-jobs-test-2
+          - zuul-jobs-test-3
+          - zuul-jobs-test-4
+
+    - name: Check output file
+      stat:
+        path: '{{ _tempfile.path }}.gpg'
+      register: _output
+
+    - name: Ensure exists
+      fail:
+        msg: 'Output file not found'
+      when: not _output.stat.exists
+
+    - name: Dump gpg packets
+      command: gpg --list-packets '{{ _tempfile.path }}.gpg'
+      register: _gpg_output
+      # Because it can't decrypt, gpg give an error.  But we're
+      # interested in the encryption packets so expect this.
+      failed_when: _gpg_output.rc != 2
+
+    - name: Show gpg command output
+      debug:
+        var: _gpg_output
+
+    - name: Validate packets
+      assert:
+        that:
+          - "'zuul-jobs-test-1' not in _gpg_output.stdout"
+          - "'zuul-jobs-test-2' in _gpg_output.stdout"
+          - "'zuul-jobs-test-3' in _gpg_output.stdout"
+          - "'zuul-jobs-test-4' in _gpg_output.stdout"
+
+    - name: Remove encrypted output file
+      file:
+        path: '{{ _tempfile.path }}.gpg'
+        state: absent
+
+    - name: Make a second fake file
+      tempfile:
+        state: file
+      register: _tempfile2
+
+    - name: Add some data to second fake file
+      copy:
+        content: 'Hello, I am encrypted. This is the second file.'
+        dest: '{{ _tempfile2.path }}'
+
+    # Do it again to exercise already imported keys path and check we can
+    # encrypt multiple files.
+    - name: Encrypt file
+      include_role:
+        name: encrypt-file
+      vars:
+        encrypt_file:
+          - '{{ _tempfile.path }}'
+          - '{{ _tempfile2.path }}'
+        encrypt_file_recipients:
+          - zuul-jobs-test-2
+          - zuul-jobs-test-3
+          - zuul-jobs-test-4
+
+    - name: Remove temporary file
+      file:
+        path: '{{ _tempfile.path }}'
+        state: absent
+      when: _tempfile.path is defined
+
+    - name: Remove encrypted output file
+      file:
+        path: '{{ _tempfile.path }}.gpg'
+        state: absent
+
+    - name: Remove second temporary file
+      file:
+        path: '{{ _tempfile2.path }}'
+        state: absent
+      when: _tempfile2.path is defined
+
+    - name: Remove second encrypted output file
+      file:
+        path: '{{ _tempfile2.path }}.gpg'
+        state: absent

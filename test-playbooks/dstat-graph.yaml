@@ -1,0 +1,19 @@
+- hosts: all
+  roles:
+    - role: ensure-dstat-graph
+      vars:
+        dstat_graph_cache_ignore: true
+    - run-dstat
+
+# Simulate workload
+- hosts: all
+  tasks:
+    # Not using ansible pause module on purpose in order to simulate the load
+    - name: Simulate workload
+      command: sleep 10
+
+- hosts: all
+  roles:
+    - role: dstat-graph
+      vars:
+        dstat_graph_cache_ignore: true

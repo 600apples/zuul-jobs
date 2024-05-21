@@ -1,0 +1,41 @@
+- name: Add all repositories
+  include_role:
+    name: ensure-package-repositories
+  vars:
+    repositories_keys:
+      - url: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{ ansible_distribution_version }}/Release.key"
+      - url: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/1.24/xUbuntu_{{ ansible_distribution_version }}/Release.key"
+    repositories_list:
+      - repo: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{ ansible_distribution_version }}/ /"
+      - repo: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/1.24/xUbuntu_{{ ansible_distribution_version }}/ /"
+- name: Install packages
+  package:
+    name:
+      - cri-o
+      - cri-o-runc
+      - containernetworking-plugins
+      - podman
+      - cri-tools
+    state: present
+  become: true
+
+- name: Find networking plugins
+  ini_file:
+    path: /etc/crio/crio.conf
+    section: crio.network
+    option: plugin_dirs
+    value:
+      - '/opt/cni/bin/'
+      - '/usr/lib/cni'
+    mode: 0644
+  become: true
+  register: _crio_conf_updated
+
+# NOTE: want to restart here rather than notify and do it later, so
+# that we don't go on without the config correct.
+- name: Restart crio to pickup changes  # noqa no-handler
+  service:
+    name: crio
+    state: restarted
+  become: yes
+  when: _crio_conf_updated.changed

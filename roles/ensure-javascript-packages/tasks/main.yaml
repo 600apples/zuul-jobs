@@ -1,0 +1,50 @@
+- name: Check to see if the constraints file exists
+  stat:
+    path: "{{ tox_constraints_file }}"
+    get_checksum: false
+    get_mime: false
+    get_md5: false
+  register: stat_results
+  when: tox_constraints_file is defined
+
+- name: Fail if constraints file is missing
+  when: tox_constraints_file is defined and not stat_results.stat.exists
+  fail:
+    msg: tox_constraints_file is defined but was not found
+
+- name: Record file location
+  set_fact:
+    tox_constraints_env:
+      TOX_CONSTRAINTS_FILE: "{{ tox_constraints_file }}"
+      # Backward compatibility, to be removed
+      UPPER_CONSTRAINTS_FILE: "{{ tox_constraints_file }}"
+  when: tox_constraints_file is defined
+
+- name: Check for yarn.lock
+  when: js_build_tool is not defined
+  stat:
+    path: "{{ zuul_work_dir }}/yarn.lock"
+    get_checksum: false
+    get_mime: false
+    get_md5: false
+  register: yarn_lock_exists
+
+- name: Set js_build_tool fact
+  set_fact:
+    js_build_tool: '{{ yarn_lock_exists.stat.exists | ternary("yarn", "npm") }}'
+  when: js_build_tool is not defined
+
+- name: Install yarn dependencies
+  command: yarn install
+  environment:
+    DISPLAY: ':99'
+  args:
+    chdir: "{{ zuul_work_dir }}"
+  when: js_build_tool == 'yarn'
+
+- name: Install npm dependencies
+  command: npm install --verbose
+  environment: "{{ npm_environment | combine(tox_constraints_env | default({})) }}"
+  args:
+    chdir: "{{ zuul_work_dir }}"
+  when: js_build_tool == 'npm'

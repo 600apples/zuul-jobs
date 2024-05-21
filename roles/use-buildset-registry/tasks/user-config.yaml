@@ -1,0 +1,66 @@
+# Update user config
+- name: Ensure docker user directory exists
+  file:
+    state: directory
+    path: "~/.docker"
+    mode: 0700
+- name: Check if docker user configuration exists
+  stat:
+    path: "~/.docker/config.json"
+  register: docker_config_stat
+- name: Load docker user configuration
+  when: docker_config_stat.stat.exists
+  slurp:
+    path: "~/.docker/config.json"
+  register: docker_config
+- name: Parse docker user configuration
+  when: docker_config_stat.stat.exists
+  set_fact:
+    docker_config: "{{ docker_config.content | b64decode | from_json }}"
+- name: Set default docker user configuration
+  when: not docker_config_stat.stat.exists
+  set_fact:
+    docker_config:
+      auths: {}
+- name: Add registry to docker user configuration
+  vars:
+    new_config:
+      auths: |
+        {
+          "{{ buildset_registry_alias }}:{{ buildset_registry.port }}":
+            {"auth": "{{ (buildset_registry.username + ":" + buildset_registry.password) | b64encode }}"}
+        }
+  set_fact:
+    docker_config: "{{ docker_config | combine(new_config, recursive=True) }}"
+  no_log: true
+- name: Save docker user configuration
+  copy:
+    content: "{{ docker_config | to_nice_json }}"
+    dest: "~/.docker/config.json"
+    mode: 0600
+  no_log: true
+# The next two tasks are for supporting the "containers" tools (ie,
+# not docker); this directory doesn't exist on Xenial.
+- name: Check if /run/user exists
+  stat:
+    path: "/run/user/{{ ansible_user_uid }}"
+  register: run_user
+- name: Write containers auth configuration
+  when: run_user.stat.exists
+  copy:
+    content: "{{ docker_config | to_nice_json }}"
+    dest: "/run/user/{{ ansible_user_uid }}/auth.json"
+    mode: 0600
+  no_log: true
+# The next two tasks are for supporting k8s
+- name: Check if /var/lib/kubelet exists
+  stat:
+    path: /var/lib/kubelet
+  register: kubelet_config
+- name: Create symbolic link between user and var/lib/kubelet configs
+  when: kubelet_config.stat.exists
+  become: yes
+  file:
+    src: "~{{ buildset_registry_docker_user | default(ansible_user) }}/.docker/config.json"
+    dest: /var/lib/kubelet/config.json
+    state: link

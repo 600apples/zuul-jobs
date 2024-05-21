@@ -1,0 +1,16 @@
+#!/bin/bash
+
+cat <<'EOF' > /usr/local/bin/rust-wrap
+#!/bin/sh
+
+RUSTUP_HOME={{ ensure_rust_rustup_path }} exec {{ ensure_rust_rustup_path }}/bin/${0##*/} "$@"
+EOF
+
+chmod 0755 /usr/local/bin/rust-wrap
+
+for f in {{ ensure_rust_rustup_path }}/bin/*
+do
+    name=$(basename ${f})
+    echo "Install link for ${name}"
+    ln -f /usr/local/bin/rust-wrap /usr/local/bin/${name}
+done

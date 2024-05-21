@@ -1,0 +1,106 @@
+- name: Register sources
+  stat:
+    path: "{{ zj_source.key }}"
+  loop: "{{ zuul_copy_output | default({}) | dict2items }}"
+  loop_control:
+    loop_var: zj_source
+  register: sources
+  no_log: true
+
+# See if we're running with sudo; if so, we'll set 'become' later so
+# we can copy root-owned files; if not, we'll just be able to copy
+# user files.
+- name: Check sudo
+  command: sudo -n true
+  failed_when: false
+  register: sudo_result
+
+# TODO(andreaf) We might want to enforce that zj_source.value is a valid value
+# in docs, artifacts, logs. Null case already handled.
+# NOTE(andreaf) Files or folders that start with a '.' are renamed to starting
+# with an '_' else they would not be visible in the logs folder once uploaded.
+# Extension changes are handled later via find as we want to rename files
+# included of folders specified in `zuul_copy_output` (except for logs_txt,
+# which is handled here).
+- name: Set source and destination for files and folders
+  set_fact:
+    source: "{{ zj_result.stat.path }}"
+    dest: "{{ zj_result.zj_source.value.split('_')[0] }}/{{ zj_result.stat.path | basename | regex_replace('^(\\..*)$', '_\\1') }}{% if zj_result.zj_source.value.endswith('_txt') %}.txt{% endif %}"
+    type: "{{ zj_result.zj_source.value.split('_')[0] }}"
+  with_items: "{{ sources.results }}"
+  loop_control:
+    loop_var: zj_result
+  when:
+    - zj_result.stat.exists
+    - zj_result.zj_source.value
+  register: results
+  no_log: true
+
+- name: Build a list of source, dest dictionaries
+  set_fact:
+    all_sources: "{{ results.results | selectattr('ansible_facts', 'defined') | map(attribute='ansible_facts') | list }}"
+
+- name: Ensure target folders exist
+  become: "{{ sudo_result.rc == 0 }}"
+  file:
+    path: "{{ stage_dir }}/{{ zj_output_dirs }}"
+    state: directory
+    owner: "{{ ansible_user }}"
+    mode: 0755
+  with_items:
+    - docs
+    - artifacts
+    - logs
+  loop_control:
+    loop_var: zj_output_dirs
+
+- name: Copy files and folders to staging folder
+  # remote_src copy does not work recursively, synchronise is restricted by
+  # zuul, using command
+  command: cp -pRL {{ zj_source.source }} {{ stage_dir }}/{{ zj_source.dest }}
+  become: "{{ sudo_result.rc == 0 }}"
+  with_items: "{{ all_sources }}"
+  loop_control:
+    loop_var: zj_source
+
+- name: Make all log files readable
+  file:
+    state: directory
+    dest: "{{ stage_dir }}/logs"
+    mode: u=rwX,g=rX,o=rX
+    recurse: yes
+  become: "{{ sudo_result.rc == 0 }}"
+
+# Do this in a module as looping tasks with ansible is very slow
+# with large lists of files. Up to three seconds per file has been observed.
+- name: Rename log files that match extensions_to_txt
+  stage_output_renames:
+    extensions: "{{ extensions_to_txt }}"
+    rename_dir: "{{ stage_dir }}/logs"
+  when: extensions_to_txt is defined and extensions_to_txt is not none
+
+- name: Collect log files
+  when:
+    - stage_compress_logs
+  block:
+    - name: Discover log files for compression
+      find:
+        paths: "{{ stage_dir }}/logs"
+        recurse: true
+        file_type: 'file'
+      register: log_files_to_compress
+
+    # NOTE(andreaf) The ansible module does not support recursive archive, so
+    # using gzip is the only option here. The good bit is that gzip itself is
+    # almost idempotent, as it will not compress again files with .gz extension.
+    # gzip will however return 1 if any compressed file is encountered, so we
+    # must ignore that (there's no specific error code).
+    - name: Archive everything from logs
+      shell: gzip --recursive --best {{ zj_log_file.path }} || true
+      args:
+        chdir: "{{ stage_dir }}/logs"
+      with_items: "{{ log_files_to_compress.files }}"
+      loop_control:
+        loop_var: zj_log_file
+      tags:
+        - skip_ansible_lint

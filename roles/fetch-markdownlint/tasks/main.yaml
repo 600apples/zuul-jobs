@@ -1,0 +1,14 @@
+- name: Is there a markdownlint.txt
+  register: stat_mdl_txt
+  stat:
+    path: "{{ zuul_work_dir }}/markdownlint.txt"
+
+- name: Store on executor
+  when: stat_mdl_txt.stat.exists
+  synchronize:
+    mode: pull
+    src: "{{ zuul_work_dir }}/markdownlint.txt"
+    dest: "{{ zuul.executor.log_root }}/markdownlint.txt"
+    verify_host: true
+    owner: no
+    group: no

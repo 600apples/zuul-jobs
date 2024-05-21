@@ -1,0 +1,14 @@
+- hosts: all
+  name: Install kubernetes with minikube
+  roles:
+    - role: ensure-kubernetes
+      vars:
+        minikube_dns_resolvers:
+          - '1.1.1.1'
+          - '8.8.8.8'
+        kubernetes_runtime: cri-o
+  post_tasks:
+    - name: Check crio version
+      command: crictl version
+      become: yes
+      failed_when: false

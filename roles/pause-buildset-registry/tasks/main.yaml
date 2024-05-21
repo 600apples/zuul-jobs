@@ -1,0 +1,10 @@
+# If buildset_registry is defined, that means a parent job is running it;
+# only if it is not defined does it mean that we are running it.  If we
+# are running it, pause the job so that child jobs will automatically
+# use it.
+- name: Pause the job
+  when: buildset_registry is not defined
+  zuul_return:
+    data:
+      zuul:
+        pause: true

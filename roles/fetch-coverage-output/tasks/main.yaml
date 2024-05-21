@@ -1,0 +1,33 @@
+- name: Check to see if coverage report exists
+  stat:
+    path: "{{ coverage_output_src }}"
+  register: coverage_report_stat
+
+- name: Fail if coverage job succeeded and report is not present
+  when:
+    - zuul_success | default(true) | bool
+    - not coverage_report_stat.stat.exists
+  fail:
+    msg: "Coverage report was not found even though tests succeeded"
+
+- name: Collect coverage
+  when: coverage_report_stat.stat.exists
+  block:
+    - name: Collect coverage details output
+      synchronize:
+        dest: "{{ zuul_executor_dest }}"
+        mode: pull
+        src: "{{ coverage_output_src }}"
+        verify_host: true
+        owner: no
+        group: no
+
+    - name: Return artifact to Zuul
+      zuul_return:
+        data:
+          zuul:
+            artifacts:
+              - name: "Coverage data"
+                url: "cover/"
+                metadata:
+                  type: coverage_data

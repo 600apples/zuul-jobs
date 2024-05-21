@@ -1,0 +1,11 @@
+- name: Require yarn_command variable
+  fail:
+    msg: yarn_command is required for this role
+  when: yarn_command is not defined
+
+- name: Run yarn
+  include_role:
+    name: js-package-manager
+  vars:
+    js_build_command: '{{ yarn_command }}'
+    js_build_tool: 'yarn'

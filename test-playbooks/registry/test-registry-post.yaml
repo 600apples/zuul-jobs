@@ -1,0 +1,4 @@
+- hosts: all
+  roles:
+    - collect-kubernetes-logs
+    - collect-container-logs

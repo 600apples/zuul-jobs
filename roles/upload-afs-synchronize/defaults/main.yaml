@@ -1,0 +1,2 @@
+afs_source: "{{ zuul.executor.work_root }}/artifacts/"
+afs_copy_only: true

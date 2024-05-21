@@ -1,0 +1,5 @@
+zuul_temp_winrm_name: "{{ zuul.build }}_winrm"
+zuul_temp_winrm_cert: "{{ zuul.executor.work_root }}/{{ zuul_temp_winrm_name }}.crt"
+zuul_temp_winrm_key: "{{ zuul.executor.work_root }}/{{ zuul_temp_winrm_name }}.key"
+zuul_temp_winrm_pfx: "{{ zuul.executor.work_root }}/{{ zuul_temp_winrm_name }}.pfx"
+zuul_temp_winrm_remote_tempfile: "~/appdata/local/temp/{{ zuul_temp_winrm_name }}.pfx"

@@ -1,0 +1,100 @@
+# Jobs listed in go-jobs.rst.
+
+- job:
+    name: golang-go
+    parent: unittests
+    description: |
+      Base job for go operations
+
+      Responds to these variables:
+
+      .. zuul:jobvar:: go_command
+         :default: build
+
+         Command to pass to go.
+
+      .. zuul:jobvar:: go_package_dir
+
+         Path to go package to test
+
+      .. zuul:jobvar:: go_install_dir
+         :default: /usr/local/
+
+         Path to install go in
+
+      .. zuul:jobvar:: go_version
+         :default: 1.13
+
+         The version of go to use.
+
+      .. zuul:jobvar:: go_os
+         :default: {{ ansible_system | lower }}
+
+          OS to use when choosing go version.
+
+      .. zuul:jobvar:: go_arch
+         :default: amd64 / 386
+
+          Architecture to use when choosing go version
+
+      .. zuul:jobvar:: zuul_work_dir
+         :default: {{ zuul.project.src_dir }}
+
+         Path to operate in.
+
+    pre-run: playbooks/go/pre.yaml
+    run: playbooks/go/run.yaml
+    vars:
+      go_command: build
+
+- job:
+    name: golang-go-test
+    parent: golang-go
+    description: |
+      Base job for go operations
+
+      Responds to these variables:
+
+      .. zuul:jobvar:: go_command
+         :default: build
+
+         Command to pass to go.
+
+      .. zuul:jobvar:: go_package_dir
+
+         Path to go package to test
+
+      .. zuul:jobvar:: go_install_dir
+         :default: /usr/local/
+
+         Path to install go in
+
+      .. zuul:jobvar:: go_version
+         :default: 1.13
+
+         The version of go to use.
+
+      .. zuul:jobvar:: go_os
+         :default: {{ ansible_system | lower }}
+
+         OS to use when choosing go version.
+
+      .. zuul:jobvar:: go_arch
+         :default: amd64 / 386
+
+         Architecture to use when choosing go version
+
+      .. zuul:jobvar:: zuul_work_dir
+         :default: {{ zuul.project.src_dir }}
+
+         Path to operate in.
+    vars:
+      go_command: test
+
+- job:
+    name: golangci-lint
+    parent: unittests
+    description: |
+      Run golangci-lint on a Go project
+    pre-run: playbooks/golangci-lint/pre.yaml
+    run: playbooks/golangci-lint/run.yaml

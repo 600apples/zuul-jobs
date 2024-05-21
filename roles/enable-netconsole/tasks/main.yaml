@@ -1,0 +1,83 @@
+- name: Check remote IP set
+  assert:
+    that:
+      - netconsole_remote_ip is defined
+      - netconsole_remote_port is defined
+    fail_msg: "Must set remote host and port"
+
+- name: Register netconsole target var
+  set_fact:
+    nc_target: '/sys/kernel/config/netconsole/target1'
+
+- name: Everything needs root
+  become: yes
+  block:
+
+    # netconsole requires the device to send packtes from and the
+    # destination MAC.  This works for hosts on the same subnet, but the
+    # way to get packets out to the world is to specify the default gw as
+    # the remote destination.
+
+    - name: Get default gateway
+      shell: "ip route | grep default | awk '{print $3}'"
+      register: default_gw_cmd
+
+    - name: Save default gateway
+      set_fact:
+        default_gw: '{{ default_gw_cmd.stdout }}'
+
+    - name: Get default gateway MAC
+      shell: "arp {{ default_gw }} | grep {{ default_gw }} | awk '{print $3}'"
+      register: default_gw_cmd_mac
+
+    - name: Save default gateway MAC
+      set_fact:
+        default_gw_mac: '{{ default_gw_cmd_mac.stdout }}'
+
+    - name: Get default device
+      shell: "ip route | grep default | awk '{print $5}'"
+      register: default_gw_cmd_dev
+
+    - name: Save default device
+      set_fact:
+        default_gw_dev: '{{ default_gw_cmd_dev.stdout }}'
+
+    - name: Install configfs
+      command: modprobe configfs
+
+    - name: Install netconsole
+      command: modprobe netconsole
+
+    - name: Mount configfs
+      mount:
+        path: /sys/kernel/config
+        fstype: configfs
+        src: configfs
+        state: mounted
+
+    - name: Make netconsole target directory
+      file:
+        path: '{{ nc_target }}'
+        state: directory
+        mode: 0755
+
+    - name: Configure gateway
+      shell: 'echo {{ default_gw_dev }} > {{ nc_target }}/dev_name'
+
+    - name: Configure gateway MAC
+      shell: 'echo {{ default_gw_mac }} > {{ nc_target }}/remote_mac'
+
+    - name: Configure remote IP
+      shell: 'echo {{ netconsole_remote_ip }} > {{ nc_target }}/remote_ip'
+
+    - name: Configure remote port
+      shell: 'echo {{ netconsole_remote_port }} > {{ nc_target }}/remote_port'
+
+    - name: Enable netconsole
+      shell: 'echo 1 > {{ nc_target }}/enabled'
+
+    - name: Turn up dmesg
+      command: dmesg -n 8
+
+    - name: Send a test message
+      shell: "echo 'netconsole enabled' > /dev/kmsg"

@@ -1,0 +1,7 @@
+hashicorp_releases_fqdn: https://releases.hashicorp.com
+terraform_version: 0.12.26
+terraform_install_dir: "{{ ansible_user_dir  }}/.local/bin/"
+terraform_os: "{{ ansible_system | lower }}"
+terraform_arch: "{{ terraform_arch_translation[ansible_architecture] }}"
+terraform_package: "terraform_{{ terraform_version }}_{{ terraform_os }}_{{ terraform_arch }}"
+terraform_executable: "{{ ansible_user_dir }}/.local/bin/terraform"

@@ -1,0 +1,26 @@
+- hosts: all
+  vars:
+    tox_molecule_packages: "{{ _tox_molecule_packages | default([]) }}"
+  roles:
+    - role: ensure-docker
+  tasks:
+    - name: Gather variables for each operating system
+      include_vars: "{{ item }}"
+      with_first_found:
+        - skip: true
+          files:
+            - "vars/molecule/{{ ansible_distribution | lower }}-{{ ansible_distribution_version | lower }}.yaml"
+            - "vars/molecule/{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version | lower }}.yaml"
+            - "vars/molecule/{{ ansible_os_family | lower }}-{{ ansible_distribution_major_version | lower }}.yaml"
+            - "vars/molecule/{{ ansible_distribution | lower }}.yaml"
+            - "vars/molecule/{{ ansible_os_family | lower }}-{{ ansible_distribution_version.split('.')[0] }}.yaml"
+            - "vars/molecule/{{ ansible_os_family | lower }}.yaml"
+      tags:
+        - always
+
+    - name: Install packages needed by molecule
+      become: true
+      package:
+        name: "{{ tox_molecule_packages }}"
+      when:
+        - tox_molecule_packages | default(false)

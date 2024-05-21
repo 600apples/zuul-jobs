@@ -1,0 +1,17 @@
+- name: Find text files to HTMLify
+  find:
+    paths: "{{ zuul.executor.log_root }}"
+    recurse: true
+    patterns:
+      - "*.txt"
+      - "*.txt.gz"
+  register: htmlify_files
+
+- name: HTMLify text files
+  htmlify:
+    input: "{{ zj_item.path }}"
+    output: "{{ zj_item.path | regex_replace('\\.txt', '.html') }}"
+  loop: "{{ htmlify_files.files }}"
+  loop_control:
+    loop_var: zj_item
+  no_log: true

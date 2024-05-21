@@ -1,0 +1,16 @@
+# It looks like CentOS 9 has no plans to support this,
+# and we should be using "python3 -m venv". [1]
+#
+# ensure-pip already exports 'ensure_pip_virtualenv_command'
+#
+# [1] https://lists.centos.org/pipermail/centos-devel/2021-August/098470.html
+- name: Fail on CentOS 9
+  fail:
+    msg: 'This element not supported on CentOS >= 9'
+  when: (ansible_facts['distribution'] == 'CentOS' and ansible_facts['distribution_major_version']|int >= 9)
+
+- name: Install virtualenv
+  package:
+    name:
+      - python3-virtualenv
+  become: yes

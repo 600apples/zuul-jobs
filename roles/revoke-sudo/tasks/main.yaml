@@ -1,0 +1,20 @@
+- name: Check if zuul is sudoer
+  command: sudo -n true
+  failed_when: false
+  register: zuul_is_sudoer
+
+# We do this in one command and not in a loop
+# to make sure we don't revoke sudo in the first file
+# and then error because we lost sudo access when we
+# try to delete the next file.
+- name: Remove sudo access for zuul user.
+  become: yes
+  command: rm -rf /etc/sudoers.d/zuul /etc/sudoers.d/90-cloud-init-users  # noqa deprecated-command-syntax
+  when: zuul_is_sudoer.rc == 0
+
+- name: Prove that general sudo access is actually revoked.
+  shell: '! sudo -n true'
+  tags:
+    # We really need shell above, skip warning
+    - skip_ansible_lint
+  when: zuul_is_sudoer.rc == 0

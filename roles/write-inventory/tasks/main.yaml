@@ -1,0 +1,9 @@
+- name: Write inventory file
+  write_inventory:
+    dest: "{{ write_inventory_dest }}"
+    hostvars: "{{ hostvars }}"
+    groups: "{{ groups }}"
+    include_hostvars: "{{ write_inventory_include_hostvars | default(omit) }}"
+    exclude_hostvars: "{{ write_inventory_exclude_hostvars | default(omit) }}"
+    additional_hostvars: "{{ write_inventory_additional_hostvars | default(omit) }}"
+    per_host_hostvars: "{{ write_inventory_per_host_hostvars | default(omit) }}"

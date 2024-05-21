@@ -1,0 +1,3 @@
+hlint_report_name: "hlint.html"
+
+zuul_work_dir: "{{ zuul.project.src_dir }}"

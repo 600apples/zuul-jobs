@@ -1,0 +1,43 @@
+parseable: true
+quiet: false
+skip_list:
+  - meta-no-info  # No 'galaxy_info' found
+  - no-changed-when  # Commands should not change things if nothing needs doing
+  - no-tabs  # Most files should not contain tabs
+  - role-name  # Role name does not match ``^[a-z][a-z0-9_]+$`` pattern
+  - fqcn-builtins  # It would probably be good to enforce this, but it's a lot
+  - fqcn  # similar to above
+  - risky-file-permissions  # It would probably also good to enforce this if someone wants to look at them
+  - schema  # This is a stricter form of schema per https://github.com/ansible/schemas.  might also be good if someone has motivation?
+
+  # NOTE(ianw) After following the jinja formatting extensions in
+  # ansible-lint for a few releases, this does not seem to be
+  # appropriate for us.  It has broken in a couple of releases [1,2]
+  # -- but more importantly as discussed in [1] this is a bit
+  # opinonated in ways we may not like; for example
+  #  varibale|int > 123
+  # I would argue is clearer than
+  #  variable | int > 123
+  # which it tries to enforce.  This is a bit unfortunate because it
+  # does pick up some other things were people have clearly forgotten
+  # spaces around variables, etc.  Let's leave it up to humans to
+  # decide on good jinja here.
+  #  [1] https://github.com/ansible/ansible-lint/issues/2330
+  #  [2] https://github.com/ansible/ansible-lint/issues/2461
+  #  [3] https://github.com/ansible/ansible-lint/issues/2605
+  - jinja[spacing]
+  - jinja[invalid]
+
+use_default_rules: true
+verbosity: 1
+mock_modules:
+  - zuul_console
+  - zuul_return
+loop_var_prefix: zj_
+# Enable rules that are disabled by default:
+enable_list:
+  - no-same-owner
+
+# Local variables:
+# mode: yaml
+# End:

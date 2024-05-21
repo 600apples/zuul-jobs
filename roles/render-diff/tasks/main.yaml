@@ -1,0 +1,38 @@
+- name: "Run render command: {{ render_command }}"
+  command: "{{ render_command }}"
+  args:
+    chdir: "{{ zuul_work_dir }}"
+
+- name: Check for diff
+  command: git diff
+  args:
+    chdir: "{{ zuul_work_dir }}"
+  register: render_diff
+  # ANSIBLE0006: Skip linting since it triggers on the "git" command,
+  # but diff is not supported by ansible git module.
+  tags:
+    - skip_ansible_lint
+
+- name: Abort on diff
+  when:
+    - render_diff.stdout
+    - not diff_ignore_errors
+  failed_when: true
+  debug:
+    msg: |
+      The repository content is not consistent.
+      Please run `{{ render_command }}` before `git commit`
+
+      {% if render_diff.stdout | regex_search('^-') %}
+      You commited change in a configuration file without using the equivalent source file.
+      Please update the source file first and run {{ render_command }}.
+
+      {% else %}
+      You commited change in a file without running make.
+      Please run `{{ render_command }}` before `git commit`.
+
+      {% endif %}
+
+      The difference is:
+
+      {{ render_diff.stdout }}

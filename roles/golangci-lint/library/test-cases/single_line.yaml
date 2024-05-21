@@ -1,0 +1,27 @@
+---
+workdir: src/opendev.org/vexxhost/openstack-operator
+output: |
+  builders/pod_metrics_endpoint.go:27:2: SA1019: pme.obj.TargetPort is deprecated: Use 'port' instead.  (staticcheck)
+  	pme.obj.TargetPort = &targetPort
+  	^
+  controllers/mcrouter_controller.go:133:15: S1039: unnecessary use of fmt.Sprintf (gosimple)
+  			Name:      fmt.Sprintf("mcrouter-podmonitor"),
+  			           ^
+  controllers/mcrouter_controller.go:163:15: S1039: unnecessary use of fmt.Sprintf (gosimple)
+  			Name:      fmt.Sprintf("mcrouter-alertrule"),
+  			           ^
+  controllers/memcached_controller.go:130:15: S1039: unnecessary use of fmt.Sprintf (gosimple)
+  			Name:      fmt.Sprintf("memcached-podmonitor"),
+
+comments:
+  builders/pod_metrics_endpoint.go:
+    - line: 27
+      message: "SA1019: pme.obj.TargetPort is deprecated: Use 'port' instead.  (staticcheck)"
+  controllers/mcrouter_controller.go:
+    - line: 133
+      message: "S1039: unnecessary use of fmt.Sprintf (gosimple)"
+    - line: 163
+      message: "S1039: unnecessary use of fmt.Sprintf (gosimple)"
+  controllers/memcached_controller.go:
+    - line: 130
+      message: "S1039: unnecessary use of fmt.Sprintf (gosimple)"

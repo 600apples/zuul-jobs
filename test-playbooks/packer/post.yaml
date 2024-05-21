@@ -1,0 +1,9 @@
+- hosts: all
+  tasks:
+    - name: Ensure test_variable was written to file
+      lineinfile:
+        line: "{{ packer_variables.packer_test_content | replace('\n', '') }}"
+        dest: "{{ packer_environment.PACKER_TEST_FILE }}"
+      check_mode: yes
+      register: test_variable_presence
+      failed_when: test_variable_presence.changed

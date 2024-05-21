@@ -1,0 +1,110 @@
+- job:
+    name: terraform-base
+    description: |
+      Base job for terraform operations
+
+      Responds to these variables:
+
+      .. zuul:jobvar:: terraform_command
+
+         Command to pass to terraform.
+
+      .. zuul:jobvar:: terraform_workspace
+
+         Name of the workspace to operate against.
+         By default this will not be created if it does not exist.
+
+      .. zuul:rolevar:: terraform_create_workspace
+         :default: false
+
+         Set to true if the workspace should automatically be created if
+         doesn't already exist.
+
+      .. zuul:rolevar:: terraform_purge_workspace
+         :default: false
+
+         Set to true if the workspace should be deleted
+         after running 'terraform destroy'.
+
+      .. zuul:rolevar:: terraform_comment
+         :default: true
+
+         Set to false to stop zuul from leaving a comment with the execution plan.
+
+      .. zuul:rolevar:: terraform_overrides
+
+         List of override.tf files to create before initializing terraform.
+         This is useful if a module should use the source from a required project
+         that has been checked out by zuul instead of using a remote git repository.
+
+         .. zuul:rolevar:: dir
+
+            Directory to put override.tf
+
+         .. zuul:rolevar:: content
+
+            Free form content of the override.tf file.
+
+      .. zuul:jobvar:: terraform_extra_args
+         :default: ""
+
+         String containing extra arguments to append to the terraform command line.
+
+      .. zuul:jobvar:: terraform_install_dir
+         :default: {{ ansible_user_dir }}/terraform/
+
+         Path to install terraform in.
+
+      .. zuul:rolevar:: terraform_executable
+         :default: {{ ansible_user_dir }}/.local/bin/terraform
+
+         Path to terraform executable to use.
+
+      .. zuul:jobvar:: terraform_version
+         :default: 0.12.26
+
+         The version of terraform to use.
+
+      .. zuul:jobvar:: terraform_os
+         :default: {{ ansible_system | lower }}
+
+          OS to use when choosing terraform version.
+
+      .. zuul:jobvar:: terraform_arch
+         :default: amd64 / 386
+
+          Architecture to use when choosing terraform version
+
+      .. zuul:jobvar:: zuul_work_dir
+         :default: {{ zuul.project.src_dir }}
+
+         Path to operate in.
+
+    pre-run: playbooks/terraform/pre.yaml
+    run: playbooks/terraform/run.yaml
+
+- job:
+    name: terraform-plan
+    parent: terraform-base
+    description: |
+      Extends terraform-base.
+
+      .. zuul:jobvar:: terraform_command
+         :default: plan
+
+         Command to pass to terraform.
+    vars:
+      terraform_command: plan
+
+- job:
+    name: terraform-apply
+    parent: terraform-base
+    description: |
+      Extends terraform-base.
+
+      .. zuul:jobvar:: terraform_command
+         :default: apply
+
+         Command to pass to terraform.
+    vars:
+      terraform_command: apply

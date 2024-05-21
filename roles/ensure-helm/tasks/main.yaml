@@ -1,0 +1,23 @@
+---
+- name: Download Helm
+  unarchive:
+    remote_src: true
+    src: "https://get.helm.sh/helm-v{{ helm_version }}-linux-amd64.tar.gz"
+    dest: /tmp
+
+- name: Install Helm
+  become: true
+  copy:
+    remote_src: true
+    src: /tmp/linux-amd64/helm
+    dest: /usr/local/bin/helm
+    mode: '0755'
+
+- name: Initialize Helm
+  shell: helm init --client-only
+  # NOTE(b.schanzel): The init command was removed with helm v3 and no
+  #                   initialization is needed anymore
+  when: helm_version is version('3', '<')
+  tags:
+    # NOTE(mnaser): The `helm` module does not support running init only.
+    - skip_ansible_lint

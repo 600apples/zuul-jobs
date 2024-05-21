@@ -1,0 +1,43 @@
+- name: Require js_build_command variable
+  fail:
+    msg: js_build_command is required for this role
+  when:
+    - js_build_command is not defined
+    - npm_command is not defined
+
+# Set this unconditionally because people who were using old
+# versions of things with npm_command to override don't want to
+# stop overriding. We can remove this once we remove the npm
+# versions of the jobs.
+- name: Set js_build_command to npm_command for backwards compat
+  when: npm_command is defined
+  set_fact:
+    js_build_command: '{{ npm_command }}'
+
+- name: Check for yarn.lock
+  when: js_build_tool is not defined
+  stat:
+    path: "{{ zuul_work_dir }}/yarn.lock"
+    get_checksum: false
+    get_mime: false
+    get_md5: false
+  register: yarn_lock_exists
+
+- name: Set js_build_tool fact
+  set_fact:
+    js_build_tool: '{{ yarn_lock_exists.stat.exists | ternary("yarn", "npm") }}'
+  when: js_build_tool is not defined
+
+- name: Install javascript depends
+  include_role:
+    name: ensure-javascript-packages
+
+- name: Run js build command
+  command: "{{ js_build_tool }} {% if js_build_command not in npm_lifecycle_phases %} run {% endif %} {{ js_build_command }}"
+  # Need to set DISPLAY to the value that will be set when the virtual
+  # framebuffer is set up for doing browser tests.
+  environment:
+    DISPLAY: ':99'
+    CI: 'true'
+  args:
+    chdir: "{{ zuul_work_dir }}"

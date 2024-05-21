@@ -1,0 +1,5 @@
+- name: Install virtualenv
+  package:
+    name:
+      - python-virtualenv
+  become: yes

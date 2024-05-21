@@ -1,0 +1,32 @@
+- name: Validate password/token combo
+  fail:
+    msg: 'Specify either username/password or authToken'
+  when: >
+      (npm_credentials.authToken is defined) and
+      ((npm_credentials.username is defined) or (npm_credentials.password is defined))
+
+# This is not optimized, but allows for getting a version of node in the
+# home dir.
+- name: Create .npmrc configuration file
+  template:
+    dest: "~/.npmrc"
+    mode: 0400
+    src: .npmrc.j2
+
+- name: Install NVM
+  git:
+    repo: 'https://github.com/nvm-sh/nvm'
+    dest: '~/.nvm'
+    version: v0.37.2
+
+- name: Upload tarball to npm
+  args:
+    chdir: "{{ zuul.executor.work_root }}"
+  shell:
+    executable: /bin/bash
+    cmd: |
+      export NVM_DIR="$HOME/.nvm"
+      [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" # This loads nvm
+      nvm install node
+      nvm use node
+      npm publish --ignore-scripts {{ zuul.executor.work_root }}/artifacts/{{ zuul.project.short_name }}-{{ project_ver }}.tar.gz

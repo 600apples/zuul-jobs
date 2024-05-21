@@ -1,0 +1,20 @@
+---
+- name: Make sure this role is run on RHEL/CentOS/Ubuntu systems
+  fail:
+    msg: This role supports RHEL/CentOS/Fedora/Ubuntu systems only
+  when:
+    - not (ansible_distribution == 'CentOS' and ansible_distribution_major_version|int >= 8)
+    - not (ansible_distribution == 'Red Hat Enterprise Linux' and ansible_distribution_major_version|int >= 8)
+    - not ansible_distribution == 'Fedora'
+    - not ansible_distribution == 'Ubuntu'
+
+- name: Do tasks for RHEL/Centos systems
+  include_tasks: rhel.yaml
+  when: >
+    (ansible_distribution == 'CentOS' and ansible_distribution_major_version|int >= 8) or
+    (ansible_distribution == 'Red Hat Enterprise Linux' and ansible_distribution_major_version|int >= 8) or
+    ansible_distribution == 'Fedora'
+
+- name: Do tasks for Ubuntu
+  include_tasks: ubuntu.yaml
+  when: ansible_distribution == 'Ubuntu'

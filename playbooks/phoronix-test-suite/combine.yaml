@@ -1,0 +1,4 @@
+---
+- hosts: all
+  roles:
+    - phoronix-combine-results

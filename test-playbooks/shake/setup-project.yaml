@@ -1,0 +1,19 @@
+- hosts: all
+  tasks:
+    - name: Setup shakefile
+      copy:
+        dest: "{{ zuul.project.src_dir }}/Shakefile.hs"
+        content: |
+          import Development.Shake
+
+          -- This Shakefile creates synthetic load using sha256sum on each .rst file
+          main :: IO ()
+          main = shakeArgs shakeOptions{shakeFiles="_build"} $ do
+            want [ "doc" ]
+
+            phony "doc" $ do
+              files <- getDirectoryFiles "" ["//*.rst"]
+              putNormal $ "Processing doc... with: " <> show files
+              need files
+
+            "//**.rst" %> \rst_file -> cmd_ "sha256sum " [rst_file]

@@ -1,0 +1,50 @@
+# This happens in the pre-playbook of the opendev-buildset-registry
+# job.  Since we're testing these roles in opendev, we need to do the
+# same here for the builder (and also the intermediate registry,
+# though that obviously happens in configuration management rather
+# than a job).
+- hosts: builder:intermediate-registry
+  name: "Set up container system and iptables configuration for registry hosts"
+  tasks:
+    - name: Install container system
+      include_role:
+        name: "ensure-{{ container_command }}"
+    - name: Open the IPv4 port for the buildset registry
+      become: true
+      iptables:
+        action: insert
+        chain: openstack-INPUT
+        destination_port: '5000:5001'
+        jump: ACCEPT
+        match: tcp
+        ctstate: NEW
+        protocol: tcp
+        ip_version: ipv4
+    - name: Open the IPv6 port for the buildset registry
+      become: true
+      iptables:
+        action: insert
+        chain: openstack-INPUT
+        destination_port: '5000:5001'
+        jump: ACCEPT
+        match: tcp
+        ctstate: NEW
+        protocol: tcp
+        ip_version: ipv6
+
+- hosts: executor
+  name: Set up a simulated executor
+  tasks:
+    - name: Install packages
+      become: true
+      package:
+        name:
+          - socat
+        state: present
+
+    # NOTE(ianw) 2023-02-03 : we need a later version for buildx
+    - name: Install skopeo
+      include_role:
+        name: ensure-skopeo
+      vars:
+        ensure_skopeo_install_from_upstream: true

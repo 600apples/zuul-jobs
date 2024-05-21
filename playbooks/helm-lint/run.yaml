@@ -1,0 +1,10 @@
+- hosts: all
+  tasks:
+    - name: Lint helm charts
+      include_role:
+        name: helm-lint
+      vars:
+        helm_chart: "{{ zj_item }}"
+      loop: "{{ helm_charts }}"
+      loop_control:
+        loop_var: 'zj_item'

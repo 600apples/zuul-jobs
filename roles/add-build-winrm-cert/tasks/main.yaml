@@ -1,0 +1,17 @@
+- name: Check to see if WinRM cert was already created for this build
+  stat:
+    path: "{{ zuul_temp_winrm_key }}"
+  register: zuul_temp_winrm_key_stat
+  delegate_to: localhost
+  run_once: true
+  failed_when: false
+
+- name: Generate WinRM export password
+  set_fact:
+    zuul_temp_winrm_password: "{{ lookup('password', '/dev/null') }}"
+  no_log: true
+  when: not zuul_temp_winrm_key_stat.stat.exists
+
+- name: Create a new key in workspace based on build UUID
+  include_tasks: create-key-and-replace.yaml
+  when: not zuul_temp_winrm_key_stat.stat.exists

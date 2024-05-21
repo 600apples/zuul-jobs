@@ -1,0 +1,1 @@
+dstat_data_path: "{{ ansible_user_dir }}/zuul-output/logs/dstat.csv"

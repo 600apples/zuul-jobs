@@ -1,0 +1,18 @@
+- name: Precreate AFS target directory
+  # rsync will create the target directory but not its parent directories
+  # which may not yet exist
+  file:
+    path: "{{ afs_target }}"
+    state: directory
+    mode: 0755
+- name: Upload contents to AFS
+  synchronize:
+    src: "{{ afs_source }}"
+    dest: "{{ afs_target }}"
+    # NOTE(ianw): you can't set group permissions on AFS, hence we
+    # don't set owner specifically.
+    archive: false
+    perms: true
+    times: true
+    recursive: true
+    rsync_opts: '{{ ["--safe-links"] + ["--delete-after"] if not afs_copy_only else [] }}'

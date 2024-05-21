@@ -1,0 +1,10 @@
+# Roles that are part of the 'multinode' job
+
+# If you add new tests, also update the files section in jobs
+# base-integration and multinode-integration in zuul.d/jobs.yaml.
+
+- import_playbook: multi-node-known-hosts.yaml
+- import_playbook: multi-node-hosts-file.yaml
+- import_playbook: multi-node-firewall.yaml
+- import_playbook: multi-node-bridge.yaml
+- import_playbook: persistent-firewall.yaml

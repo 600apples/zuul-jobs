@@ -1,0 +1,37 @@
+- name: Make sure the role is run on Fedora
+  fail:
+    msg: "This role supports Fedora only"
+  when: "ansible_distribution != 'Fedora'"
+
+- name: Check cabal version
+  command: cabal --version
+  failed_when: false
+  register: _cabal_version
+
+- name: Install cabal
+  when: _cabal_version.rc != 0
+  block:
+    - name: Ensure copr dnf plugin
+      package:
+        name: dnf-plugins-core
+        state: present
+      become: yes
+
+    - name: Install cabal copr
+      command: dnf copr enable -y petersen/cabal-install
+      become: true
+
+    - name: Install cabal
+      package:
+        name: cabal-install
+        state: present
+      become: true
+
+- name: Check package
+  stat:
+    path: "~/.cabal/packages"
+  register: _cabal_packages
+
+- name: Update package list
+  command: cabal update
+  when: not _cabal_packages.stat.exists

@@ -1,0 +1,4 @@
+render_command: make
+
+zuul_work_dir: "{{ zuul.project.src_dir }}"
+diff_ignore_errors: false

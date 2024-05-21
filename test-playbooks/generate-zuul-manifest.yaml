@@ -1,0 +1,60 @@
+- name: Run tests for the generate-zuul-manifest role
+  hosts: all
+  pre_tasks:
+    - name: Create test directories
+      file:
+        path: "{{ ansible_user_dir }}/{{ item }}"
+        state: directory
+      loop:
+        - tests
+        - tests/logs
+
+    - name: Create tests files
+      copy:
+        dest: "{{ ansible_user_dir }}/{{ item }}"
+        content: ""
+      loop:
+        - tests/index.txt
+        - tests/logs/file.txt
+        - tests/logs/file.png
+
+  roles:
+    - role: generate-zuul-manifest
+      generate_zuul_manifest_root: "{{ ansible_user_dir }}/tests"
+      generate_zuul_manifest_filename: "test-manifest.json"
+      generate_zuul_manifest_output: "{{ ansible_user_dir }}/tests/{{ generate_zuul_manifest_filename }}"
+      generate_zuul_manifest_type: "test_zuul_manifest"
+
+  post_tasks:
+    - name: Fetch output
+      fetch:
+        src: "{{ ansible_user_dir }}/tests/test-manifest.json"
+        flat: true
+        dest: "{{ zuul.executor.log_root }}/"
+
+    - name: Load output
+      include_vars:
+        file: "{{ zuul.executor.log_root }}/test-manifest.json"
+        name: manifest
+
+    - name: Check output
+      vars:
+        got: "{{ manifest['tree'] }}"
+        exp:
+          - name: logs
+            mimetype: application/directory
+            children:
+              - name: file.png
+                mimetype: image/png
+              - name: file.txt
+                mimetype: text/plain
+          - name: index.txt
+            mimetype: text/plain
+      assert:
+        that:
+          - got[0]['name'] == exp[0]['name']
+          - got[0]['mimetype'] == exp[0]['mimetype']
+          - got[0]['children'][0]['name'] == exp[0]['children'][0]['name']
+          - got[0]['children'][0]['mimetype'] == exp[0]['children'][0]['mimetype']
+          - got[0]['children'][1]['name'] == exp[0]['children'][1]['name']
+          - got[0]['children'][1]['mimetype'] == exp[0]['children'][1]['mimetype']

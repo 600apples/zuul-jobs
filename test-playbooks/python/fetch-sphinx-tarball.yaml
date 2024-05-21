@@ -1,0 +1,66 @@
+- hosts: all
+  pre_tasks:
+    # Run ensure-output-dirs now as it is not performed speculatively
+    - name: Run ensure-output-dirs
+      import_role:
+        name: ensure-output-dirs
+
+    # This simulates the operation of something like "tox -e docs" in
+    # the project creating some fake html and pdf output.  Note the
+    # directory name is "doc/" just like in projects.
+    - name: Create fake sphinx output on host
+      shell: |
+        mkdir -p {{ zuul.project.src_dir }}/doc/build/pdf
+        mkdir -p {{ zuul.project.src_dir }}/doc/build/html
+        echo "%PDF-1.2" > {{ zuul.project.src_dir }}/doc/build/pdf/doc-{{ zuul.project.short_name }}.pdf
+        echo "<body>Hello</body>" > {{ zuul.project.src_dir }}/doc/build/html/index.html
+
+  tasks:
+    # This tars up the fake sphinx output we created above on the test
+    # host and does one of two things:
+    #
+    # zuul_use_fetch_output == False
+    #
+    #  Copy the generated .tar.gz files back to the log_root of the
+    #  executor; extract the archives to "<log_root>/docs/" and
+    #  "<log_root>/pdf" to make "browsable" output and return
+    #  artifacts pointing to the .tar.gz files.
+    #
+    # zuul_use_fetch_output == True
+    #
+    #  The generated .tar.gz files are copied into
+    #  {{ ansible_user_dir }}/zuul-output/logs/ and extracted into
+    #  zuul-output/logs/<docs|pdf> on the host.  They need to be brought back
+    #  to the executor using fetch-output
+    - name: Run fetch-sphinx-tarball
+      import_role:
+        name: fetch-sphinx-tarball
+
+    # This copies files from the remote host;
+    #  - zuul-output/logs is copied into the zuul.executor.log_root
+    #  - zuul-output/<artifacts|docs> is copied into zuul.executor.work_root
+    - name: Run fetch-output
+      import_role:
+        name: fetch-output
+      when: zuul_use_fetch_output
+
+  post_tasks:
+    - name: Check for artifact on the test instance
+      stat:
+        path: "{{ ansible_user_dir }}/zuul-output/logs/{{ item }}"
+      register: _test_artifact
+      failed_when: not _test_artifact.stat.exists
+      with_items:
+        - "pdf/doc-{{ zuul.project.short_name }}.pdf"
+        - docs/index.html
+      when: zuul_use_fetch_output
+
+    - name: Check for artifact on the executor
+      stat:
+        path: "{{ zuul.executor.log_root }}/{{ item }}"
+      delegate_to: localhost
+      register: _executor_artifact
+      failed_when: not _executor_artifact.stat.exists
+      with_items:
+        - "pdf/doc-{{ zuul.project.short_name }}.pdf"
+        - docs/index.html

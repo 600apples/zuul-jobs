@@ -1,0 +1,6 @@
+ghc_version: latest
+ghc_versions:
+  latest: "8.10"
+  8.10: "8.10"
+  8.8: "8.8"
+  8.6: "8.6"

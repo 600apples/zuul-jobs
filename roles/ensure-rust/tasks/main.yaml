@@ -1,0 +1,8 @@
+- name: Use rustup
+  include_tasks: 'rustup.yaml'
+  when: ensure_rust_rustup
+
+- name: Install packages
+  fail:
+    msg: 'Packaged rust install not yet implemented'
+  when: ensure_rust_packages

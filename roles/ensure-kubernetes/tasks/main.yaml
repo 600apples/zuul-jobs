@@ -1,0 +1,18 @@
+- name: Install microk8s
+  when: ensure_kubernetes_type == 'microk8s'
+  include_tasks: microk8s.yaml
+
+- name: Install minikube
+  when: ensure_kubernetes_type == 'minikube'
+  block:
+    - name: Install kubernetes dependencies
+      become: yes
+      apt:
+        name:
+          - conntrack
+          - liblz4-tool
+        update_cache: yes
+
+    - name: Run cluster tasks
+      include_tasks: minikube.yaml
+      when: install_kubernetes_with_cluster

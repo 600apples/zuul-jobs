@@ -1,0 +1,68 @@
+- hosts: all
+  tasks:
+    - name: Ensure pip works for ensure-twine
+      include_role:
+        name: ensure-pip
+
+    - name: Install twine
+      include_role:
+        name: ensure-twine
+
+    - name: Setup role failure var
+      set_fact:
+        _role_failed: false
+
+    - name: Wrap arg failure
+      block:
+        - name: Check for argument failure
+          include_role:
+            name: upload-pypi
+          vars:
+            pypi_info:
+              username: a_user
+              api_token: a_token
+
+      rescue:
+        - name: Mark role as failed
+          set_fact:
+            _role_failed: true
+
+    - name: Check role failed
+      fail:
+        msg: 'upload-pypi did not fail as it should'
+      when: _role_failed is not true
+
+    # We tag this with the unix timestamp so that the upload always
+    # has an increasing version number.
+    - name: Import sandbox project  # noqa command-instead-of-module
+      shell: |
+        git clone https://opendev.org/opendev/sandbox
+        pushd sandbox
+        git tag $(date '+%s')
+        python3 setup.py bdist_wheel
+      args:
+        executable: '/bin/bash'
+      tags:
+        - skip_ansible_lint
+
+    # This value is restricted to uploading the sandbox package to
+    # test.pypi.org; it is not kept in plain text to avoid things that
+    # grep for accidentally committed tokens finding it, but it is not
+    # particularly secret.  OpenDev admins can revoke it from the
+    # "openstackci" test.pypi.org user if there is an issue.
+    - name: Set API token
+      set_fact:
+        _api_token: |
+            cHlwaS1BZ0VOZEdWemRDNXdlWEJwTG05eVp3SWtOMk0wTmpBMU9HSXRORGszTVMwME9ERTRMV0kx
+            Tm1NdFpEUTNNalJsWmpneE16TTRBQUk0ZXlKd1pYSnRhWE56YVc5dWN5STZJSHNpY0hKdmFtVmpk
+            SE1pT2lCYkluTmhibVJpYjNnaVhYMHNJQ0oyWlhKemFXOXVJam9nTVgwQUFBWWdmTGN1cHNaeWw3
+            NkI0Ri1Bd3FDR19VZHlNSWVMQzRHWHZTUjhSalEyQlJnCg==
+
+    - name: Upload sandbox
+      include_role:
+        name: upload-pypi
+      vars:
+        pypi_info:
+          api_token: '{{ _api_token | b64decode }}'
+          repository: testpypi
+        pypi_path: '{{ ansible_user_dir }}/sandbox/dist'

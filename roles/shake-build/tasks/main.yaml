@@ -1,0 +1,17 @@
+- name: Run shake
+  block:
+    - name: Run shake
+      command: "shake --report={{ report_location }} {{ shake_target }}"
+      vars:
+        report_location: "{{ ansible_user_dir }}/zuul-output/logs/{{ shake_report_name }}"
+      args:
+        chdir: "{{ zuul_work_dir }}"
+
+  always:
+    - name: Return report to Zuul
+      zuul_return:
+        data:
+          zuul:
+            artifacts:
+              - name: "Shake report"
+                url: "{{ shake_report_name }}"

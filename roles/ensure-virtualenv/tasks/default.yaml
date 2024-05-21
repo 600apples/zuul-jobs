@@ -1,0 +1,3 @@
+- name: Unsupported platform
+  fail:
+    msg: 'This platform is currently unsupported'

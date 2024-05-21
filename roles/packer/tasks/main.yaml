@@ -1,0 +1,38 @@
+- name: Require packer executable
+  fail:
+    msg: packer_executable not defined
+  when: packer_executable is not defined
+
+- name: Create packer variable tempfile
+  tempfile:
+  register: packer_variable_tempfile
+  when: packer_variables is defined
+
+- name: Create packer variables file
+  copy:
+    content: |
+      {{ packer_variables | to_json }}
+    dest: "{{ packer_variable_tempfile.path }}"
+    mode: 0600
+  when: packer_variables is defined
+  no_log: true  # We don't want to log this since credentials could be passed this way
+
+- name: Run packer
+  block:
+    - name: Run packer
+      command: >-
+        {{ packer_executable }}
+        {{ packer_command }}
+        {% if packer_variables is defined %}
+        -var-file={{ packer_variable_tempfile.path }}
+        {% endif %}
+        {{ packer_extra_args }}
+        {{ packer_template }}
+      environment: "{{ packer_environment }}"
+      args:
+        chdir: "{{ packer_workdir }}"
+  always:
+    - name: Delete packer variables file
+      file:
+        state: absent
+        path: "{{ packer_variable_tempfile.path }}"

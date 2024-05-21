@@ -1,0 +1,58 @@
+- job:
+    name: zuul-jobs-test-cabal-test
+    description: Test the cabal-test job and roles
+    parent: cabal-test
+    files:
+      - playbooks/haskell/cabal.yaml
+      - playbooks/haskell/pre.yaml
+      - roles/ensure-cabal/.*
+      - roles/ensure-ghc/.*
+      - roles/cabal-test/.*
+    pre-run: test-playbooks/haskell/setup-project.yaml
+    nodeset:
+      nodes:
+        - name: fedora-36
+          label: fedora-36
+
+- job:
+    name: zuul-jobs-test-haskell-stack-test
+    description: Test the haskell-stack-test job and roles
+    parent: haskell-stack-test
+    files:
+      - playbooks/haskell/stack.yaml
+      - playbooks/haskell/pre-stack.yaml
+      - roles/ensure-haskell-stack/.*
+      - roles/haskell-stack-test/.*
+    pre-run: test-playbooks/haskell/setup-stack-project.yaml
+    nodeset:
+      nodes:
+        - name: fedora-36
+          label: fedora-36
+
+- job:
+    name: zuul-jobs-test-hlint
+    description: Test the hlint job and roles
+    parent: hlint
+    files:
+      - playbooks/haskell/hlint.yaml
+      - playbooks/haskell/pre-hlint.yaml
+      - roles/ensure-hlint/.*
+      - roles/hlint/.*
+    pre-run:
+      - playbooks/haskell/pre.yaml
+      - test-playbooks/haskell/setup-project.yaml
+    nodeset:
+      nodes:
+        - name: fedora-36
+          label: fedora-36
+
+- project:
+    check:
+      jobs: &id001
+        - zuul-jobs-test-cabal-test
+        - zuul-jobs-test-haskell-stack-test
+        - zuul-jobs-test-hlint
+    gate:
+      jobs: *id001
+    periodic-weekly:
+      jobs: *id001

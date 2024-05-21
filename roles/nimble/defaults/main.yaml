@@ -1,0 +1,4 @@
+nimble_command: build
+nimble_use_siblings: true
+nimble_siblings: "{{ zuul.projects.values() | selectattr('required') | map(attribute='src_dir') | list }}"
+zuul_work_dir: "{{ zuul.project.src_dir }}"

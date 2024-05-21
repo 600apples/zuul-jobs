@@ -1,0 +1,86 @@
+---
+# This dynamically configures a unique offset for this peer
+- name: Set offset
+  set_fact:
+    offset: "{{ bridge_address_offset | int + 1 + groups['peers'].index(inventory_hostname) }}"
+
+- name: Add additional vni offset
+  set_fact:
+    vni: "{{ offset | int + bridge_vni_offset | int }}"
+
+# To make things more readable in the following tasks
+- name: Set ip address when the node private IP looks empty
+  set_fact:
+    nodepool_ip: "{{ nodepool.public_ipv4 }}"
+  when: not (nodepool.private_ipv4 | ipv4)
+
+- name: Set ip address when the node private IP was not defined
+  set_fact:
+    nodepool_ip: |
+      {{ nodepool.private_ipv4 | default(nodepool.public_ipv4) }}
+  when: nodepool_ip is not defined
+
+- name: Select the switch from group and the private ip
+  set_fact:
+    switch: "{{ groups['switch'][0] }}"
+    switch_private_ip: "{{ hostvars[groups['switch'][0]].nodepool.private_ipv4 }}"
+
+- name: Alias the primary node private IP, if it looks empty
+  set_fact:
+    switch_ip: "{{ hostvars[switch].nodepool.public_ipv4 }}"
+  when: not (switch_private_ip | ipv4)
+
+- name: Alias the primary node private IP, if it was not defined
+  set_fact:
+    switch_ip: "{{ switch_private_ip | default(hostvars[switch].nodepool.public_ipv4) }}"
+  when: switch_ip is not defined
+
+- name: Add port to bridge on switch node
+  become: yes
+  command: >-
+    ovs-vsctl --may-exist add-port {{ bridge_name }}
+    {{ bridge_name }}_{{ nodepool_ip }}
+    -- set interface {{ bridge_name }}_{{ nodepool_ip }}
+    type=vxlan options:remote_ip={{ nodepool_ip }} options:key={{ vni }}
+    options:local_ip={{ switch_ip }}
+  delegate_to: "{{ switch }}"
+
+- name: Create bridge on peer node
+  become: yes
+  openvswitch_bridge:
+    bridge: "{{ bridge_name }}"
+
+- name: Set MTU on peer node bridge
+  become: yes
+  command: ip link set mtu {{ bridge_mtu }} dev {{ bridge_name }}
+
+- name: Add port to bridge on peer node
+  become: yes
+  command: >-
+    ovs-vsctl --may-exist add-port {{ bridge_name }}
+    {{ bridge_name }}_{{ switch_ip }}
+    -- set interface {{ bridge_name }}_{{ switch_ip }}
+    type=vxlan options:remote_ip={{ switch_ip }} options:key={{ vni }}
+    options:local_ip={{ nodepool_ip }}
+
+- name: Configure bridge address
+  when: bridge_configure_address
+  block:
+    - name: Verify if the bridge address is set
+      shell: ip addr show dev {{ bridge_name }} | grep -q {{ bridge_address_prefix }}.{{ offset }}/{{ bridge_address_subnet }}
+      environment:
+        PATH: '{{ ansible_env.PATH }}:/bin:/sbin:/usr/sbin'
+      register: ip_addr_var
+      failed_when: False
+      changed_when: False
+
+    - name: Set the bridge address
+      become: yes
+      command: ip addr add {{ bridge_address_prefix }}.{{ offset }}/{{ bridge_address_subnet }} dev {{ bridge_name }}
+      environment:
+        PATH: '{{ ansible_env.PATH }}:/bin:/sbin:/usr/sbin'
+      when: ip_addr_var.rc == 1
+
+- name: Bring subnode bridge interface up
+  become: yes
+  command: ip link set dev {{ bridge_name }} up

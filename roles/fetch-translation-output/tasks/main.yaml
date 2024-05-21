@@ -1,0 +1,25 @@
+- name: Check for translation files
+  stat:
+    path: "{{ translation_output_src }}"
+  register: translation_files
+
+- name: Collection translation files
+  when: translation_files.stat.exists
+  block:
+    - name: Collect translation source files
+      synchronize:
+        dest: "{{ zuul_executor_dest }}"
+        mode: pull
+        src: "{{ translation_output_src }}"
+        verify_host: true
+        owner: no
+        group: no
+      when: not zuul_use_fetch_output
+
+    - name: Copy translation source files
+      copy:
+        dest: "{{ zuul_output_dir }}/artifacts"
+        src: "{{ translation_output_src }}"
+        mode: 0755
+        remote_src: true
+      when: zuul_use_fetch_output
